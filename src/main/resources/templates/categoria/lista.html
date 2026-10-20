@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar categorias - CityReport</title>
+</head>
+<body>
+    <h1>Gerenciar categorias</h1>
+
+    <nav>
+        <a th:href="@{/atendente/setores}">Setores</a> |
+        <a th:href="@{/atendente/categorias}">Categorias</a>
+    </nav>
+
+    <p>
+        <a th:href="@{/atendente/categorias/novo}">Cadastrar categoria</a>
+    </p>
+
+    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
+    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
+
+    <p th:if="${#lists.isEmpty(categorias)}">Nenhuma categoria cadastrada.</p>
+
+    <table th:unless="${#lists.isEmpty(categorias)}">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Setor responsável</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="categoria : ${categorias}">
+                <td th:text="${categoria.id}"></td>
+                <td th:text="${categoria.nome}"></td>
+                <td th:text="${categoria.setor.nome}"></td>
+                <td th:text="${categoria.ativo} ? 'Ativa' : 'Inativa'"></td>
+                <td>
+                    <a th:href="@{/atendente/categorias/{id}/editar(id=${categoria.id})}">Editar</a>
+
+                    <form th:if="${categoria.ativo}"
+                          th:action="@{/atendente/categorias/{id}/desativar(id=${categoria.id})}"
+                          method="post">
+                        <button type="submit">Desativar</button>
+                    </form>
+
+                    <form th:unless="${categoria.ativo}"
+                          th:action="@{/atendente/categorias/{id}/ativar(id=${categoria.id})}"
+                          method="post">
+                        <button type="submit">Ativar</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

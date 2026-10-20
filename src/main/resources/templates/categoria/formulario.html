@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Formulário de categoria</title>
+</head>
+<body>
+    <h1 th:text="${titulo}">Formulário de categoria</h1>
+
+    <p><a th:href="@{/atendente/categorias}">Voltar para categorias</a></p>
+
+    <form th:action="${acao}" th:object="${categoria}" method="post">
+
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+        </div>
+
+        <p>
+            <label for="nome">Nome da categoria:</label>
+            <input type="text" id="nome" th:field="*{nome}" maxlength="100" required>
+            <span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+        </p>
+
+        <p>
+            <label for="setor">Setor responsável:</label>
+            <select id="setor" th:field="*{setor.id}" required>
+                <option value="">Selecione um setor</option>
+                <option th:each="setor : ${setores}"
+                        th:value="${setor.id}"
+                        th:text="${setor.nome}"></option>
+            </select>
+            <span th:if="${#fields.hasErrors('setor')}" th:errors="*{setor}"></span>
+        </p>
+
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

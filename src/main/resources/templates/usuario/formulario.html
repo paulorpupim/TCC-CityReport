@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Cadastro ou edição de usuário - CityReport</title>
+</head>
+<body>
+    <h1 th:text="${titulo}">Cadastro ou edição de usuário</h1>
+
+    <p><a th:href="@{/atendente/usuarios}">Voltar para usuários</a></p>
+
+    <form th:action="${acao}" th:object="${usuarioDTO}" method="post">
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+        </div>
+
+        <p>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" th:field="*{nome}" maxlength="100" autocomplete="name" required>
+            <span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+        </p>
+
+        <p>
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" th:field="*{email}" maxlength="150" autocomplete="email" required>
+            <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+        </p>
+
+        <p th:if="${!#strings.endsWith(acao, '/editar')}">
+            <label for="perfil">Perfil:</label>
+            <select id="perfil" th:field="*{perfil}" required>
+                <option value="">Selecione um perfil</option>
+                <option value="ATENDENTE">Atendente</option>
+                <option value="FUNCIONARIO">Funcionário de campo</option>
+            </select>
+            <span th:if="${#fields.hasErrors('perfil')}" th:errors="*{perfil}"></span>
+        </p>
+
+        <p th:if="${#strings.endsWith(acao, '/editar')}">
+            <strong>Perfil:</strong>
+            <span th:text="${usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'ATENDENTE' ? 'Atendente' : 'Funcionário de campo'}"></span>
+        </p>
+
+        <p th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}">
+            <label for="setorId">Setor (obrigatório para funcionário):</label>
+            <select id="setorId" th:field="*{setorId}">
+                <option value="">Selecione um setor</option>
+                <option th:each="setor : ${setores}"
+                        th:value="${setor.id}"
+                        th:text="${setor.nome}"></option>
+            </select>
+            <span th:if="${#fields.hasErrors('setorId')}" th:errors="*{setorId}"></span>
+        </p>
+
+        <p th:if="${!#strings.endsWith(acao, '/editar')}">
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" th:field="*{senha}"
+                   minlength="8" autocomplete="new-password" required>
+            <span th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></span>
+        </p>
+
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

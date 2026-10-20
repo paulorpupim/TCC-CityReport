@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setores - CityReport</title>
+</head>
+<body>
+    <h1>Setores</h1>
+
+    <nav>
+        <a th:href="@{/atendente/setores}">Setores</a> |
+        <a th:href="@{/atendente/categorias}">Categorias</a>
+    </nav>
+
+    <p>
+        <a th:href="@{/atendente/setores/novo}">Cadastrar setor</a>
+    </p>
+
+    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
+    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
+
+    <p th:if="${#lists.isEmpty(setores)}">Nenhum setor cadastrado até o momento.</p>
+
+    <table th:unless="${#lists.isEmpty(setores)}">
+        <thead>
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="setor : ${setores}">
+                <td th:text="${setor.id}"></td>
+                <td th:text="${setor.nome}"></td>
+                <td th:text="${setor.ativo} ? 'Ativo' : 'Inativo'"></td>
+                <td>
+                    <a th:href="@{/atendente/setores/{id}/editar(id=${setor.id})}">Editar</a>
+
+                    <form th:if="${setor.ativo}"
+                          th:action="@{/atendente/setores/{id}/desativar(id=${setor.id})}"
+                          method="post">
+                        <button type="submit">Desativar</button>
+                    </form>
+
+                    <form th:unless="${setor.ativo}"
+                          th:action="@{/atendente/setores/{id}/ativar(id=${setor.id})}"
+                          method="post">
+                        <button type="submit">Ativar</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
