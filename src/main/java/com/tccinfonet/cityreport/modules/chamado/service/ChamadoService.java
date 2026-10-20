@@ -6,12 +6,16 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tccinfonet.cityreport.modules.categoria.entity.Categoria;
 import com.tccinfonet.cityreport.modules.categoria.service.CategoriaService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
+import com.tccinfonet.cityreport.modules.chamado.foto_chamado.entity.FotoChamado;
+import com.tccinfonet.cityreport.modules.chamado.foto_chamado.enums.TipoFoto;
+import com.tccinfonet.cityreport.modules.chamado.foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
@@ -32,6 +36,7 @@ public class ChamadoService {
     private final UsuarioService usuarioService;
     private final CategoriaService categoriaService;
     private final HistoricoChamadoService historicoChamadoService;
+    private final FotoChamadoService fotoChamadoService;
     private final EntityManager entityManager;
 
     // Consultas administrativas: lista todos os chamados e busca um pelo ID.
@@ -79,7 +84,8 @@ public class ChamadoService {
         return chamado;
     }
 
-    // Cadastro: nunca aceita do formulario o cidadao, o status ou a prioridade oficial.
+    // Cadastro: nunca aceita do formulario o cidadao, o status ou a prioridade
+    // oficial.
     @Transactional
     public Chamado cadastrar(Chamado dados, String emailAutenticado) {
         Usuario cidadao = usuarioService.buscarPorEmail(emailAutenticado);
@@ -125,7 +131,7 @@ public class ChamadoService {
     // Triagem: o atendente define a categoria final e a prioridade oficial.
     @Transactional
     public Chamado aprovarTriagem(Long chamadoId, Long categoriaId, Prioridade prioridadeOficial,
-                                 String emailAtendente) {
+            String emailAtendente) {
         Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
         Chamado chamado = buscarPorId(chamadoId);
         exigirStatus(chamado, StatusChamado.ENVIADO);
@@ -157,7 +163,7 @@ public class ChamadoService {
     // Permite alterar a prioridade de um chamado ainda em atendimento.
     @Transactional
     public Chamado alterarPrioridade(Long chamadoId, Prioridade novaPrioridade,
-                                    String emailAtendente) {
+            String emailAtendente) {
         Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
         Chamado chamado = buscarPorId(chamadoId);
 
@@ -257,6 +263,244 @@ public class ChamadoService {
                 StatusChamado.ATRIBUIDO, StatusChamado.EM_EXECUCAO);
 
         return salvo;
+    }
+
+    // O envio da foto inicial e opcional. Somente o autor pode anexar uma foto do
+    // problema.
+    @Transactional
+    public FotoChamado adicionarFotoProblema(Long chamadoId, MultipartFile arquivo, String emailAutenticado) {
+        Usuario cidadao = usuarioService.buscarPorEmail(emailAutenticado);
+        Chamado chamado = buscarDoCidadao(chamadoId, emailAutenticado);
+
+        FotoChamado foto = fotoChamadoService.salvarFoto(chamado, cidadao, TipoFoto.PROBLEMA, arquivo);
+        historicoChamadoService.registrar(chamado, cidadao, "Foto do problema adicionada.", null, null);
+        return foto;
+    }
+
+    // O autor pode cancelar enquanto o servico nunca tiver sido iniciado.
+    @Transactional
+    public Chamado cancelar(Long chamadoId, String justificativa, String emailAutenticado) {
+        Usuario cidadao = usuarioService.buscarPorEmail(emailAutenticado);
+        Chamado chamado = buscarDoCidadao(chamadoId, emailAutenticado);
+
+        if (chamado.getPrimeiroInicioExecucao() != null) {
+            throw new IllegalArgumentException("O chamado nao pode ser cancelado depois do inicio da execucao.");
+        }
+        if (chamado.getStatus() != StatusChamado.ENVIADO
+                && chamado.getStatus() != StatusChamado.AGUARDANDO_INFORMACOES
+                && chamado.getStatus() != StatusChamado.ABERTO
+                && chamado.getStatus() != StatusChamado.ATRIBUIDO) {
+            throw new IllegalArgumentException("Nao e possivel cancelar este chamado.");
+        }
+
+        String motivo = validarTexto(justificativa, "A justificativa", 1700);
+        StatusChamado anterior = chamado.getStatus();
+        chamado.setStatus(StatusChamado.CANCELADO);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, cidadao,
+                "Chamado cancelado. Justificativa: " + motivo,
+                anterior, StatusChamado.CANCELADO);
+        return chamado;
+    }
+
+    // O atendente pode recusar um chamado durante a triagem, com justificativa.
+    @Transactional
+    public Chamado recusar(Long chamadoId, String justificativa, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado chamado = buscarPorId(chamadoId);
+
+        if (chamado.getStatus() != StatusChamado.ENVIADO
+                && chamado.getStatus() != StatusChamado.AGUARDANDO_INFORMACOES) {
+            throw new IllegalArgumentException("Somente chamados em triagem podem ser recusados.");
+        }
+
+        String motivo = validarTexto(justificativa, "A justificativa", 1700);
+        StatusChamado anterior = chamado.getStatus();
+        chamado.setStatus(StatusChamado.RECUSADO);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, atendente,
+                "Chamado recusado. Justificativa: " + motivo,
+                anterior, StatusChamado.RECUSADO);
+        return chamado;
+    }
+
+    // Vincula um registro duplicado a um chamado original, sem copiar seu
+    // andamento.
+    @Transactional
+    public Chamado marcarDuplicado(Long chamadoId, Long originalId, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado duplicado = buscarPorId(chamadoId);
+        Chamado original = buscarPorId(originalId);
+
+        if (duplicado.getStatus() != StatusChamado.ENVIADO
+                && duplicado.getStatus() != StatusChamado.AGUARDANDO_INFORMACOES) {
+            throw new IllegalArgumentException("A duplicidade so pode ser definida durante a triagem.");
+        }
+        if (Objects.equals(chamadoId, originalId)) {
+            throw new IllegalArgumentException("Um chamado nao pode ser duplicado de si mesmo.");
+        }
+        if (original.getStatus() == StatusChamado.DUPLICADO
+                || original.getStatus() == StatusChamado.RECUSADO
+                || original.getStatus() == StatusChamado.CANCELADO
+                || original.getChamadoOriginal() != null) {
+            throw new IllegalArgumentException("Selecione um chamado original valido.");
+        }
+        // Impede que um chamado que ja e original de outros vire duplicado.
+        if (chamadoRepository.existsByChamadoOriginalId(chamadoId)) {
+            throw new IllegalArgumentException("Este chamado ja possui duplicados vinculados.");
+        }
+
+        StatusChamado anterior = duplicado.getStatus();
+        duplicado.setChamadoOriginal(original);
+        duplicado.setStatus(StatusChamado.DUPLICADO);
+        chamadoRepository.save(duplicado);
+        historicoChamadoService.registrar(duplicado, atendente,
+                "Chamado identificado como duplicado do protocolo " + original.getId() + ".",
+                anterior, StatusChamado.DUPLICADO);
+        return duplicado;
+    }
+
+    // Acompanhamento do cidadao: duplicados exibem o andamento do original.
+    public StatusChamado consultarAndamento(Long chamadoId, String emailAutenticado) {
+        Chamado chamado = buscarDoCidadao(chamadoId, emailAutenticado);
+        if (chamado.getStatus() == StatusChamado.DUPLICADO) {
+            return chamado.getChamadoOriginal().getStatus();
+        }
+        return chamado.getStatus();
+    }
+
+    // Durante a triagem o atendente pode pedir informacoes adicionais.
+    @Transactional
+    public Chamado solicitarInformacoes(Long chamadoId, String solicitacao, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado chamado = buscarPorId(chamadoId);
+        exigirStatus(chamado, StatusChamado.ENVIADO);
+
+        String mensagem = validarTexto(solicitacao, "A solicitacao", 1700);
+        chamado.setStatus(StatusChamado.AGUARDANDO_INFORMACOES);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, atendente,
+                "Informacoes solicitadas: " + mensagem,
+                StatusChamado.ENVIADO, StatusChamado.AGUARDANDO_INFORMACOES);
+        return chamado;
+    }
+
+    // O autor responde e o chamado volta para a fila de triagem.
+    @Transactional
+    public Chamado complementarInformacoes(Long chamadoId, String resposta, String emailAutenticado) {
+        Usuario cidadao = usuarioService.buscarPorEmail(emailAutenticado);
+        Chamado chamado = buscarDoCidadao(chamadoId, emailAutenticado);
+        exigirStatus(chamado, StatusChamado.AGUARDANDO_INFORMACOES);
+
+        String mensagem = validarTexto(resposta, "A resposta", 1700);
+        chamado.setStatus(StatusChamado.ENVIADO);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, cidadao,
+                "Informacoes complementares: " + mensagem,
+                StatusChamado.AGUARDANDO_INFORMACOES, StatusChamado.ENVIADO);
+        return chamado;
+    }
+
+    // O funcionario registra o impedimento e aguarda decisao do atendente.
+    @Transactional
+    public Chamado registrarImpedimento(Long chamadoId, String justificativa, String emailFuncionario) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailFuncionario);
+        Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
+        exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
+
+        String motivo = validarTexto(justificativa, "A justificativa", 1700);
+        chamado.setStatus(StatusChamado.PENDENTE);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, funcionario,
+                "Execucao impedida. Justificativa: " + motivo,
+                StatusChamado.EM_EXECUCAO, StatusChamado.PENDENTE);
+        return chamado;
+    }
+
+    // Reabre a atribuicao depois de um impedimento, mantendo ou trocando o
+    // funcionario.
+    // funcionarioId = null significa manter o mesmo responsavel.
+    @Transactional
+    public Chamado retomarPendente(Long chamadoId, Long funcionarioId, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado chamado = buscarPorId(chamadoId);
+        exigirStatus(chamado, StatusChamado.PENDENTE);
+
+        Usuario anterior = chamado.getFuncionarioResponsavel();
+        Long idEscolhido = funcionarioId != null ? funcionarioId
+                : anterior == null ? null : anterior.getId();
+        Usuario responsavel = validarFuncionarioDoSetor(idEscolhido, chamado.getCategoria());
+
+        chamado.setFuncionarioResponsavel(responsavel);
+        chamado.setStatus(StatusChamado.ATRIBUIDO);
+        chamadoRepository.save(chamado);
+
+        String descricao = anterior != null && !Objects.equals(anterior.getId(), responsavel.getId())
+                ? "Chamado retomado e reatribuido de " + anterior.getNome()
+                        + " para " + responsavel.getNome() + "."
+                : "Chamado retomado para o funcionario " + responsavel.getNome() + ".";
+        historicoChamadoService.registrar(chamado, atendente,
+                descricao, StatusChamado.PENDENTE, StatusChamado.ATRIBUIDO);
+        return chamado;
+    }
+
+    // O funcionario conclui sua tentativa enviando obrigatoriamente UMA NOVA foto.
+    @Transactional
+    public Chamado solicitarFinalizacao(Long chamadoId, MultipartFile fotoSolucao, String emailFuncionario) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailFuncionario);
+        Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
+        exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
+
+        // A foto e validada e armazenada antes de permitir mudar o status.
+        fotoChamadoService.salvarFoto(chamado, funcionario, TipoFoto.SOLUCAO, fotoSolucao);
+        chamado.setStatus(StatusChamado.AGUARDANDO_VALIDACAO);
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, funcionario,
+                "Execucao enviada para validacao, com fotografia da solucao.",
+                StatusChamado.EM_EXECUCAO, StatusChamado.AGUARDANDO_VALIDACAO);
+        return chamado;
+    }
+
+    // Aprovacao definitiva pelo atendente. Um chamado resolvido nao e reaberto.
+    @Transactional
+    public Chamado aprovarConclusao(Long chamadoId, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado chamado = buscarPorId(chamadoId);
+        exigirStatus(chamado, StatusChamado.AGUARDANDO_VALIDACAO);
+
+        chamado.setStatus(StatusChamado.RESOLVIDO);
+        chamado.setDataConclusao(LocalDateTime.now());
+        chamadoRepository.save(chamado);
+        historicoChamadoService.registrar(chamado, atendente,
+                "Conclusao aprovada pelo atendente.",
+                StatusChamado.AGUARDANDO_VALIDACAO, StatusChamado.RESOLVIDO);
+        return chamado;
+    }
+
+    // Reprovacao com justificativa e opcionalmente outro funcionario responsavel.
+    @Transactional
+    public Chamado reprovarConclusao(Long chamadoId, String justificativa,
+            Long novoFuncionarioId, String emailAtendente) {
+        Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
+        Chamado chamado = buscarPorId(chamadoId);
+        exigirStatus(chamado, StatusChamado.AGUARDANDO_VALIDACAO);
+
+        String motivo = validarTexto(justificativa, "A justificativa", 1700);
+        Usuario anterior = chamado.getFuncionarioResponsavel();
+        Long escolhido = novoFuncionarioId != null ? novoFuncionarioId
+                : anterior == null ? null : anterior.getId();
+        Usuario responsavel = validarFuncionarioDoSetor(escolhido, chamado.getCategoria());
+        chamado.setFuncionarioResponsavel(responsavel);
+        chamado.setStatus(StatusChamado.ATRIBUIDO);
+        chamadoRepository.save(chamado);
+
+        String troca = anterior != null && !Objects.equals(anterior.getId(), responsavel.getId())
+                ? " Novo responsavel: " + responsavel.getNome() + "."
+                : "";
+        historicoChamadoService.registrar(chamado, atendente,
+                "Execucao reprovada. Justificativa: " + motivo + "." + troca,
+                StatusChamado.AGUARDANDO_VALIDACAO, StatusChamado.ATRIBUIDO);
+        return chamado;
     }
 
     // Confere se a acao administrativa foi solicitada por um atendente ativo.

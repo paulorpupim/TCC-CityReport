@@ -9,6 +9,7 @@ import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 
+
 @Repository
 public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
 
@@ -24,6 +25,7 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
 
     List<Chamado> findByCategoriaIdOrderByDataCriacaoDesc(Long categoriaId);
 
-    // util pois um funcionario só pode ter um chamado em execução
+    boolean existsByChamadoOriginalId(Long originalId);
+
     boolean existsByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
 }
