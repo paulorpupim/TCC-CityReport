@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus chamados - CityReport</title>
+</head>
+<body>
+    <h1>Meus chamados</h1>
+
+    <nav>
+        <a th:href="@{/cidadaos/perfil}">Meu perfil</a> |
+        <a th:href="@{/chamados}">Meus chamados</a> |
+        <a th:href="@{/chamados/novo}">Abrir chamado</a>
+    </nav>
+
+    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
+    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
+
+    <p th:if="${#lists.isEmpty(chamados)}">Você ainda não registrou nenhum chamado.</p>
+
+    <table th:unless="${#lists.isEmpty(chamados)}">
+        <thead>
+            <tr>
+                <th scope="col">Protocolo</th>
+                <th scope="col">Título</th>
+                <th scope="col">Categoria</th>
+                <th scope="col">Urgência informada</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Criado em</th>
+                <th scope="col">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="chamado : ${chamados}">
+                <td th:text="${chamado.id}"></td>
+                <td th:text="${chamado.titulo}"></td>
+                <td th:text="${chamado.categoria.nome}"></td>
+                <td th:text="${chamado.urgenciaPercebida}"></td>
+                <td th:text="${chamado.status}"></td>
+                <td th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}"></td>
+                <td>
+                    <a th:href="@{/chamados/{id}(id=${chamado.id})}">Ver detalhes</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Chamados marcados como duplicados apresentam o andamento do original na página de detalhes.</p>
+</body>
+</html>

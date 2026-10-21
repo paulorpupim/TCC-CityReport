@@ -1,27 +1,33 @@
-package com.tccinfonet.cityreport.modules.chamado.foto_chamado.service;
+package com.tccinfonet.cityreport.modules.chamado._foto_chamado.service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamado;
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.repository.FotoChamadoRepository;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
-import com.tccinfonet.cityreport.modules.chamado.foto_chamado.entity.FotoChamado;
-import com.tccinfonet.cityreport.modules.chamado.foto_chamado.enums.TipoFoto;
-import com.tccinfonet.cityreport.modules.chamado.foto_chamado.repository.FotoChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -30,6 +36,10 @@ import lombok.RequiredArgsConstructor;
 public class FotoChamadoService {
 
     private static final long TAMANHO_MAXIMO = 5 * 1024 * 1024; // 5 MB
+
+    // Somente nomes gerados pelo proprio sistema (UUID + extensao permitida).
+    private static final Pattern NOME_FOTO = Pattern.compile(
+            "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpg|png|webp)$");
 
     private final FotoChamadoRepository fotoChamadoRepository;
 
@@ -45,6 +55,41 @@ public class FotoChamadoService {
     // Lista somente fotos do problema ou somente fotos da solucao.
     public List<FotoChamado> listarPorChamadoETipo(Long chamadoId, TipoFoto tipo) {
         return fotoChamadoRepository.findByChamadoIdAndTipoOrderByDataEnvioAscIdAsc(chamadoId, tipo);
+    }
+
+    // Busca os metadados da foto registrada no banco.
+    public FotoChamado buscarPorId(Long fotoId) {
+        return fotoChamadoRepository.findById(fotoId)
+                .orElseThrow(() -> new EntityNotFoundException("Fotografia nao encontrada."));
+    }
+
+    // Carrega o arquivo do disco. A verificacao de permissoes e feita pelo Controller
+    // ANTES de chamar este metodo. O caminho nunca vem diretamente do navegador.
+    public Resource carregarArquivo(FotoChamado foto) {
+        String nome = foto.getCaminhoArquivo();
+        if (nome == null || !NOME_FOTO.matcher(nome).matches()) {
+            throw new IllegalStateException("Nome de fotografia invalido no banco de dados.");
+        }
+
+        Path pasta = Paths.get(diretorioUpload).toAbsolutePath().normalize();
+        Path caminho = pasta.resolve(nome).normalize();
+        if (!caminho.getParent().equals(pasta)) {
+            throw new IllegalStateException("Caminho da fotografia invalido.");
+        }
+
+        if (!Files.isRegularFile(caminho, LinkOption.NOFOLLOW_LINKS) || !Files.isReadable(caminho)) {
+            throw new EntityNotFoundException("Arquivo da fotografia nao encontrado.");
+        }
+
+        try {
+            if (Files.size(caminho) > TAMANHO_MAXIMO) {
+                throw new IllegalStateException("Arquivo da fotografia excede o tamanho permitido.");
+            }
+        } catch (IOException erro) {
+            throw new IllegalStateException("Nao foi possivel consultar a fotografia.", erro);
+        }
+
+        return new FileSystemResource(caminho);
     }
 
     // Salva uma imagem em disco e registra os dados dela no PostgreSQL.

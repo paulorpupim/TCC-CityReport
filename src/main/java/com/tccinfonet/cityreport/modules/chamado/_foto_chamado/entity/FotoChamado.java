@@ -1,11 +1,11 @@
-package com.tccinfonet.cityreport.modules.chamado.foto_chamado.entity;
+package com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
-import com.tccinfonet.cityreport.modules.chamado.foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 
 import jakarta.persistence.Column;

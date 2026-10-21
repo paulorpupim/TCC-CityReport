@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignorar todas as mídias e uploads dos usuários
+uploads/*
+!uploads/.gitkeep

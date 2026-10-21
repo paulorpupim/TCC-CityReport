@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abrir chamado - CityReport</title>
+</head>
+<body>
+    <h1>Abrir novo chamado</h1>
+
+    <nav>
+        <a th:href="@{/cidadaos/perfil}">Meu perfil</a> |
+        <a th:href="@{/chamados}">Meus chamados</a>
+    </nav>
+
+    <p>Descreva o problema encontrado no município. A equipe de atendimento avaliará a solicitação.</p>
+
+    <!-- Os nomes dos campos correspondem aos atributos de CriarChamadoDTO. -->
+    <form th:action="@{/chamados}" th:object="${chamadoDTO}" method="post">
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+        </div>
+
+        <p>
+            <label for="titulo">Título:</label>
+            <input type="text" id="titulo" th:field="*{titulo}" maxlength="150" required>
+            <span th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></span>
+        </p>
+
+        <p>
+            <label for="descricao">Descrição do problema:</label>
+            <textarea id="descricao" th:field="*{descricao}" rows="6" maxlength="2000" required></textarea>
+            <span th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></span>
+        </p>
+
+        <p>
+            <label for="categoriaId">Categoria:</label>
+            <select id="categoriaId" th:field="*{categoriaId}" required>
+                <option value="">Selecione uma categoria</option>
+                <option th:each="categoria : ${categorias}"
+                        th:value="${categoria.id}"
+                        th:text="${categoria.nome + ' - ' + categoria.setor.nome}"></option>
+            </select>
+            <span th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></span>
+        </p>
+
+        <p>
+            <label for="urgenciaPercebida">Qual a urgência do problema?</label>
+            <select id="urgenciaPercebida" th:field="*{urgenciaPercebida}" required>
+                <option value="">Selecione a urgência</option>
+                <option th:each="prioridade : ${prioridades}"
+                        th:value="${prioridade}"
+                        th:text="${prioridade}"></option>
+            </select>
+            <span th:if="${#fields.hasErrors('urgenciaPercebida')}" th:errors="*{urgenciaPercebida}"></span>
+        </p>
+
+        <fieldset>
+            <legend>Localização do problema</legend>
+            <p>Informe o endereço ou as duas coordenadas. Nesta primeira versão, a localização é preenchida manualmente.</p>
+
+            <p>
+                <label for="endereco">Endereço ou referência:</label>
+                <input type="text" id="endereco" th:field="*{endereco}" maxlength="255">
+                <span th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}"></span>
+            </p>
+
+            <p>
+                <label for="latitude">Latitude:</label>
+                <input type="number" id="latitude" th:field="*{latitude}" step="any" min="-90" max="90">
+                <span th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}"></span>
+            </p>
+
+            <p>
+                <label for="longitude">Longitude:</label>
+                <input type="number" id="longitude" th:field="*{longitude}" step="any" min="-180" max="180">
+                <span th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}"></span>
+            </p>
+        </fieldset>
+
+        <p>Você poderá adicionar fotografias depois que o chamado for registrado.</p>
+        <button type="submit">Registrar chamado</button>
+        <a th:href="@{/chamados}">Cancelar e voltar</a>
+    </form>
+</body>
+</html>

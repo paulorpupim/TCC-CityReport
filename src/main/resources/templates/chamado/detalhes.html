@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do chamado - CityReport</title>
+</head>
+<body>
+    <h1 th:text="|Chamado #${chamado.id}|"></h1>
+
+    <nav>
+        <a th:href="@{/cidadaos/perfil}">Meu perfil</a> |
+        <a th:href="@{/chamados}">Meus chamados</a> |
+        <a th:href="@{/chamados/novo}">Abrir chamado</a>
+    </nav>
+
+    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
+    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
+
+    <h2>Informações do chamado</h2>
+    <dl>
+        <dt>Título</dt>
+        <dd th:text="${chamado.titulo}"></dd>
+        <dt>Descrição</dt>
+        <dd th:text="${chamado.descricao}"></dd>
+        <dt>Categoria</dt>
+        <dd th:text="${chamado.categoria.nome}"></dd>
+        <dt>Urgência informada</dt>
+        <dd th:text="${chamado.urgenciaPercebida}"></dd>
+        <dt>Prioridade definida pela equipe</dt>
+        <dd th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial : 'Ainda não definida'}"></dd>
+        <dt>Status do registro</dt>
+        <dd th:text="${chamado.status}"></dd>
+        <dt>Endereço</dt>
+        <dd th:text="${chamado.endereco != null ? chamado.endereco : 'Não informado'}"></dd>
+        <dt>Latitude</dt>
+        <dd th:text="${chamado.latitude != null ? chamado.latitude : 'Não informada'}"></dd>
+        <dt>Longitude</dt>
+        <dd th:text="${chamado.longitude != null ? chamado.longitude : 'Não informada'}"></dd>
+        <dt>Data de abertura</dt>
+        <dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}"></dd>
+        <dt>Data de conclusão</dt>
+        <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Não concluído'}"></dd>
+    </dl>
+
+    <!-- O cidadao acompanha a situacao do original, sem acessar seus dados privados. -->
+    <section th:if="${chamado.status.name() == 'DUPLICADO'}">
+        <h2>Acompanhamento de chamado duplicado</h2>
+        <p>Esta solicitação foi vinculada a outra ocorrência já registrada.</p>
+        <p th:if="${chamado.chamadoOriginal != null}">
+            Protocolo original: <span th:text="${chamado.chamadoOriginal.id}"></span>
+        </p>
+        <p>Andamento da ocorrência original: <strong th:text="${statusAcompanhamento}"></strong></p>
+        <p>Os dados pessoais do autor do chamado original não são exibidos.</p>
+    </section>
+
+    <section th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+        <h2>Adicionar foto do problema (opcional)</h2>
+        <form th:action="@{/chamados/{id}/fotos(id=${chamado.id})}"
+              method="post" enctype="multipart/form-data">
+            <p>
+                <label for="arquivo">Imagem JPG, PNG ou WebP (até 5 MB):</label>
+                <input type="file" id="arquivo" name="arquivo"
+                       accept="image/jpeg,image/png,image/webp" required>
+            </p>
+            <button type="submit">Enviar fotografia</button>
+        </form>
+    </section>
+
+    <section th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+        <h2>Responder à solicitação de informações</h2>
+        <p>Consulte a solicitação da equipe no histórico abaixo.</p>
+        <form th:action="@{/chamados/{id}/complementar(id=${chamado.id})}" method="post">
+            <p>
+                <label for="resposta">Informações complementares:</label>
+                <textarea id="resposta" name="resposta" maxlength="1700" rows="5" required></textarea>
+            </p>
+            <button type="submit">Enviar informações</button>
+        </form>
+    </section>
+
+    <section th:if="${chamado.primeiroInicioExecucao == null and
+                      (chamado.status.name() == 'ENVIADO' or
+                       chamado.status.name() == 'AGUARDANDO_INFORMACOES' or
+                       chamado.status.name() == 'ABERTO' or
+                       chamado.status.name() == 'ATRIBUIDO')}">
+        <h2>Cancelar chamado</h2>
+        <p>O cancelamento só é permitido antes do primeiro início da execução.</p>
+        <form th:action="@{/chamados/{id}/cancelar(id=${chamado.id})}" method="post">
+            <p>
+                <label for="justificativaCancelamento">Justificativa:</label>
+                <textarea id="justificativaCancelamento" name="justificativa"
+                          maxlength="1700" rows="3" required></textarea>
+            </p>
+            <button type="submit">Confirmar cancelamento</button>
+        </form>
+    </section>
+
+    <h2>Fotografias registradas</h2>
+    <p th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia registrada.</p>
+    <ul th:unless="${#lists.isEmpty(fotos)}">
+        <li th:each="foto : ${fotos}">
+            <span th:text="${foto.tipo}"></span> —
+            <span th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}"></span>
+            <p>
+                <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                   target="_blank" rel="noopener noreferrer">Abrir fotografia</a>
+            </p>
+            <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                 th:alt="${foto.tipo.name() == 'PROBLEMA' ? 'Fotografia do problema' : 'Fotografia da solucao'}"
+                 width="320" loading="lazy">
+        </li>
+    </ul>
+
+    <h2>Histórico do chamado</h2>
+    <p th:if="${#lists.isEmpty(historico)}">Nenhuma movimentação registrada.</p>
+    <table th:unless="${#lists.isEmpty(historico)}">
+        <thead>
+            <tr>
+                <th scope="col">Data e hora</th>
+                <th scope="col">Descrição</th>
+                <th scope="col">Situação anterior</th>
+                <th scope="col">Nova situação</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="registro : ${historico}">
+                <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${registro.descricao}"></td>
+                <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}"></td>
+                <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

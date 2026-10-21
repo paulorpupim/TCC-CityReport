@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Início - CityReport</title>
+</head>
+<body>
+    <header>
+        <h1>CityReport</h1>
+        <p>Sistema de gerenciamento de problemas urbanos.</p>
+        <p>Bem-vindo(a), <strong th:text="${nomeUsuario}">Usuário</strong>!</p>
+        <p>Perfil: <span th:text="${perfilUsuario}">CIDADAO</span></p>
+    </header>
+
+    <main>
+        <section aria-labelledby="titulo-area-pessoal">
+            <h2 id="titulo-area-pessoal">Minha área</h2>
+            <nav aria-label="Funcionalidades pessoais">
+                <ul>
+                    <li><a th:href="@{/chamados/novo}">Abrir novo chamado</a></li>
+                    <li><a th:href="@{/chamados}">Meus chamados</a></li>
+                    <li><a th:href="@{/cidadaos/perfil}">Meu perfil</a></li>
+                </ul>
+            </nav>
+        </section>
+
+        <section sec:authorize="hasRole('ATENDENTE')" aria-labelledby="titulo-administracao">
+            <h2 id="titulo-administracao">Administração</h2>
+            <nav aria-label="Funcionalidades do atendente">
+                <ul>
+                    <li><a th:href="@{/atendente/chamados}">Gerenciar chamados</a></li>
+                    <li><a th:href="@{/atendente/setores}">Gerenciar setores</a></li>
+                    <li><a th:href="@{/atendente/setores/novo}">Cadastrar setor</a></li>
+                    <li><a th:href="@{/atendente/categorias}">Gerenciar categorias</a></li>
+                    <li><a th:href="@{/atendente/categorias/novo}">Cadastrar categoria</a></li>
+                    <li><a th:href="@{/atendente/usuarios}">Gerenciar usuários</a></li>
+                    <li><a th:href="@{/atendente/usuarios/novo}">Cadastrar atendente ou funcionário</a></li>
+                </ul>
+            </nav>
+        </section>
+
+        <section sec:authorize="hasRole('FUNCIONARIO')" aria-labelledby="titulo-funcionario">
+            <h2 id="titulo-funcionario">Área do funcionário</h2>
+            <p>As operações de execução dos chamados serão acessadas pelo aplicativo mobile, ainda em desenvolvimento.</p>
+        </section>
+    </main>
+
+    <footer>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Sair da conta</button>
+        </form>
+    </footer>
+</body>
+</html>

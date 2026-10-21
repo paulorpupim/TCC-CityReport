@@ -1,6 +1,15 @@
 package com.tccinfonet.cityreport.modules.chamado.controller;
 
+import java.util.Objects;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,16 +22,19 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.tccinfonet.cityreport.modules.categoria.entity.Categoria;
 import com.tccinfonet.cityreport.modules.categoria.service.CategoriaService;
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamado;
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.dto.CriarChamadoDTO;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
-import com.tccinfonet.cityreport.modules.chamado.foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.historico_chamado.service.HistoricoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado.service.ChamadoAtendenteService;
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoService;
+import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
+import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;
 import com.tccinfonet.cityreport.modules.usuario.service.UsuarioService;
 
 import org.springframework.web.multipart.MultipartFile;
-
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -33,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class ChamadoController {
 
     private final ChamadoService chamadoService;
+    private final ChamadoAtendenteService chamadoAtendenteService;
     private final CategoriaService categoriaService;
     private final UsuarioService usuarioService;
     private final FotoChamadoService fotoChamadoService;
@@ -117,6 +130,57 @@ public class ChamadoController {
                 "Informacoes enviadas.", "/chamados/" + id, redirectAttributes);
     }
 
+    // Exibe uma foto SOMENTE depois de verificar o acesso ao chamado.
+    // E uma rota compartilhada pelo cidadao, atendente e funcionario responsavel.
+    @GetMapping("/chamados/{id}/fotos/{fotoId}/imagem")
+    public ResponseEntity<Resource> visualizarFoto(@PathVariable Long id,
+                                                   @PathVariable Long fotoId,
+                                                   Authentication autenticacao) {
+        Usuario usuario = usuarioService.buscarPorEmail(autenticacao.getName());
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new AccessDeniedException("Usuario inativo.");
+        }
+
+        Chamado chamado;
+        try {
+            chamado = chamadoService.buscarPorId(id);
+        } catch (EntityNotFoundException erro) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado.");
+        }
+
+        boolean atendente = usuario.getPerfil() == PerfilUsuario.ATENDENTE;
+        boolean autor = chamado.getCidadao() != null
+                && Objects.equals(chamado.getCidadao().getId(), usuario.getId());
+        boolean funcionarioResponsavel = usuario.getPerfil() == PerfilUsuario.FUNCIONARIO
+                && chamado.getFuncionarioResponsavel() != null
+                && Objects.equals(chamado.getFuncionarioResponsavel().getId(), usuario.getId());
+
+        if (!atendente && !autor && !funcionarioResponsavel) {
+            throw new AccessDeniedException("Voce nao pode visualizar as fotos deste chamado.");
+        }
+
+        try {
+            FotoChamado foto = fotoChamadoService.buscarPorId(fotoId);
+            if (foto.getChamado() == null || !Objects.equals(foto.getChamado().getId(), id)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Foto nao pertence a este chamado.");
+            }
+
+            // O formato e definido pelo nome gerado no servidor, nunca por um parametro da URL.
+            String nome = foto.getCaminhoArquivo();
+            MediaType tipo = nome.endsWith(".png") ? MediaType.IMAGE_PNG
+                    : nome.endsWith(".webp") ? MediaType.parseMediaType("image/webp")
+                    : MediaType.IMAGE_JPEG;
+
+            Resource arquivo = fotoChamadoService.carregarArquivo(foto);
+            return ResponseEntity.ok()
+                    .cacheControl(CacheControl.noStore())
+                    .contentType(tipo)
+                    .body(arquivo);
+        } catch (EntityNotFoundException erro) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fotografia nao encontrada.");
+        }
+    }
+
     // ======================= AREA DO ATENDENTE =======================
     // O Spring Security restringe /atendente/** ao perfil ATENDENTE.
 
@@ -149,7 +213,7 @@ public class ChamadoController {
                                 Authentication autenticacao,
                                 RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.aprovarTriagem(id, categoriaId, prioridadeOficial, autenticacao.getName()),
+                () -> chamadoAtendenteService.aprovarTriagem(id, categoriaId, prioridadeOficial, autenticacao.getName()),
                 "Triagem aprovada.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -159,7 +223,7 @@ public class ChamadoController {
                                     Authentication autenticacao,
                                     RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.alterarPrioridade(id, prioridadeOficial, autenticacao.getName()),
+                () -> chamadoAtendenteService.alterarPrioridade(id, prioridadeOficial, autenticacao.getName()),
                 "Prioridade atualizada.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -169,7 +233,7 @@ public class ChamadoController {
                            Authentication autenticacao,
                            RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.atribuir(id, funcionarioId, autenticacao.getName()),
+                () -> chamadoAtendenteService.atribuir(id, funcionarioId, autenticacao.getName()),
                 "Funcionario atribuido.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -179,7 +243,7 @@ public class ChamadoController {
                           Authentication autenticacao,
                           RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.recusar(id, justificativa, autenticacao.getName()),
+                () -> chamadoAtendenteService.recusar(id, justificativa, autenticacao.getName()),
                 "Chamado recusado.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -189,7 +253,7 @@ public class ChamadoController {
                                   Authentication autenticacao,
                                   RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.marcarDuplicado(id, originalId, autenticacao.getName()),
+                () -> chamadoAtendenteService.marcarDuplicado(id, originalId, autenticacao.getName()),
                 "Chamado vinculado ao original.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -199,7 +263,7 @@ public class ChamadoController {
                                        Authentication autenticacao,
                                        RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.solicitarInformacoes(id, solicitacao, autenticacao.getName()),
+                () -> chamadoAtendenteService.solicitarInformacoes(id, solicitacao, autenticacao.getName()),
                 "Informacoes solicitadas ao cidadao.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -209,7 +273,7 @@ public class ChamadoController {
                                  Authentication autenticacao,
                                  RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.retomarPendente(id, funcionarioId, autenticacao.getName()),
+                () -> chamadoAtendenteService.retomarPendente(id, funcionarioId, autenticacao.getName()),
                 "Chamado retomado.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -218,7 +282,7 @@ public class ChamadoController {
                                    Authentication autenticacao,
                                    RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.aprovarConclusao(id, autenticacao.getName()),
+                () -> chamadoAtendenteService.aprovarConclusao(id, autenticacao.getName()),
                 "Conclusao aprovada.", "/atendente/chamados/" + id, redirectAttributes);
     }
 
@@ -229,7 +293,7 @@ public class ChamadoController {
                                     Authentication autenticacao,
                                     RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoService.reprovarConclusao(id, justificativa, novoFuncionarioId,
+                () -> chamadoAtendenteService.reprovarConclusao(id, justificativa, novoFuncionarioId,
                         autenticacao.getName()),
                 "Execucao devolvida para nova tentativa.", "/atendente/chamados/" + id, redirectAttributes);
     }
