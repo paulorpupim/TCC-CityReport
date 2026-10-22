@@ -1,14 +1,14 @@
-package com.tccinfonet.cityreport.modules.chamado.historico_chamado.service;
+package com.tccinfonet.cityreport.modules.chamado._historico_chamado.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.entity.HistoricoChamado;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.repository.HistoricoChamadoRepository;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
-import com.tccinfonet.cityreport.modules.chamado.historico_chamado.entity.HistoricoChamado;
-import com.tccinfonet.cityreport.modules.chamado.historico_chamado.repository.HistoricoChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 
 import lombok.RequiredArgsConstructor;

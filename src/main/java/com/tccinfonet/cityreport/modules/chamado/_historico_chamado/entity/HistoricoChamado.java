@@ -1,5 +1,5 @@
 
-package com.tccinfonet.cityreport.modules.chamado.historico_chamado.entity;
+package com.tccinfonet.cityreport.modules.chamado._historico_chamado.entity;
 
 import java.time.LocalDateTime;
 

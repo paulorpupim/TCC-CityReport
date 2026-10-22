@@ -7,10 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tccinfonet.cityreport.modules.categoria.entity.Categoria;
 import com.tccinfonet.cityreport.modules.categoria.service.CategoriaService;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
-import com.tccinfonet.cityreport.modules.chamado.historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;

@@ -9,9 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
-import com.tccinfonet.cityreport.modules.chamado.historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;
