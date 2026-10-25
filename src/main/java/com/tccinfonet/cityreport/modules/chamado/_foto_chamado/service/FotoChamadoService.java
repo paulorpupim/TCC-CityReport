@@ -44,7 +44,7 @@ public class FotoChamadoService {
     private final FotoChamadoRepository fotoChamadoRepository;
 
     // Fora de src/main/resources/static: imagens nao devem ser publicas por URL direta.
-    @Value("${cityreport.upload.dir:uploads/chamados}")
+    @Value("${cityreport.upload.dir}")
     private String diretorioUpload;
 
     // Lista metadados das fotos. Quem chama deve verificar antes o acesso ao chamado.

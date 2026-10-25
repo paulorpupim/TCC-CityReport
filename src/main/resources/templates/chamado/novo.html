@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abrir chamado - CityReport</title>
+
+    <!-- O Leaflet precisa de seu CSS para exibir os mapas e marcadores corretamente. -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
 </head>
+
 <body>
     <h1>Abrir novo chamado</h1>
 
     <nav>
+        <a th:href="@{/}">Início</a> |
         <a th:href="@{/cidadaos/perfil}">Meu perfil</a> |
         <a th:href="@{/chamados}">Meus chamados</a>
     </nav>
@@ -37,9 +45,8 @@
             <label for="categoriaId">Categoria:</label>
             <select id="categoriaId" th:field="*{categoriaId}" required>
                 <option value="">Selecione uma categoria</option>
-                <option th:each="categoria : ${categorias}"
-                        th:value="${categoria.id}"
-                        th:text="${categoria.nome + ' - ' + categoria.setor.nome}"></option>
+                <option th:each="categoria : ${categorias}" th:value="${categoria.id}"
+                    th:text="${categoria.nome + ' - ' + categoria.setor.nome}"></option>
             </select>
             <span th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></span>
         </p>
@@ -48,22 +55,33 @@
             <label for="urgenciaPercebida">Qual a urgência do problema?</label>
             <select id="urgenciaPercebida" th:field="*{urgenciaPercebida}" required>
                 <option value="">Selecione a urgência</option>
-                <option th:each="prioridade : ${prioridades}"
-                        th:value="${prioridade}"
-                        th:text="${prioridade}"></option>
+                <option th:each="prioridade : ${prioridades}" th:value="${prioridade}" th:text="${prioridade}"></option>
             </select>
             <span th:if="${#fields.hasErrors('urgenciaPercebida')}" th:errors="*{urgenciaPercebida}"></span>
         </p>
 
         <fieldset>
             <legend>Localização do problema</legend>
-            <p>Informe o endereço ou as duas coordenadas. Nesta primeira versão, a localização é preenchida manualmente.</p>
+            <p>Selecione o ponto no mapa <strong>ou</strong> informe o endereço de referência.
+                Você também pode digitar as coordenadas manualmente.</p>
 
             <p>
                 <label for="endereco">Endereço ou referência:</label>
                 <input type="text" id="endereco" th:field="*{endereco}" maxlength="255">
                 <span th:if="${#fields.hasErrors('endereco')}" th:errors="*{endereco}"></span>
             </p>
+
+            <p>
+                <button type="button" id="usar-localizacao">Usar minha localização atual</button>
+                <button type="button" id="limpar-marcacao">Limpar marcação do mapa</button>
+            </p>
+            <p id="mensagem-mapa" role="status" aria-live="polite">
+                Clique no mapa para marcar onde está o problema. É possível arrastar o marcador para ajustar.
+            </p>
+
+            <!-- A altura e obrigatoria para o Leaflet exibir o mapa; nao e a estilização final. -->
+            <div id="mapa-chamado" style="height: 380px; max-width: 100%;"
+                aria-label="Mapa para escolher a localização do problema"></div>
 
             <p>
                 <label for="latitude">Latitude:</label>
@@ -76,11 +94,124 @@
                 <input type="number" id="longitude" th:field="*{longitude}" step="any" min="-180" max="180">
                 <span th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}"></span>
             </p>
+            <p>O endereço pode ficar vazio se você marcar um ponto no mapa.
+                A localização do seu dispositivo é opcional e pode não coincidir com o problema.</p>
         </fieldset>
 
         <p>Você poderá adicionar fotografias depois que o chamado for registrado.</p>
         <button type="submit">Registrar chamado</button>
         <a th:href="@{/chamados}">Cancelar e voltar</a>
     </form>
+
+    <noscript>
+        <p>O mapa precisa de JavaScript. Você ainda pode informar o endereço ou as coordenadas manualmente.</p>
+    </noscript>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Apenas a selecao da localizacao acontece aqui. O backend continua validando o cadastro.
+        (() => {
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const mensagem = document.getElementById('mensagem-mapa');
+            const botaoLocalizacao = document.getElementById('usar-localizacao');
+            const botaoLimpar = document.getElementById('limpar-marcacao');
+
+            if (typeof L === 'undefined') {
+                mensagem.textContent = 'O mapa não pôde ser carregado. Você pode informar o endereço ou as coordenadas manualmente.';
+                return;
+            }
+
+            // Visao geral do Brasil: o usuario pode navegar, ampliar ou usar a propria localizacao.
+            const mapa = L.map('mapa-chamado').setView([-14.235, -51.9253], 4);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; contribuidores do OpenStreetMap'
+            }).addTo(mapa);
+
+            let marcador = null;
+
+            function coordenadasValidas(latitude, longitude) {
+                return Number.isFinite(latitude) && Number.isFinite(longitude)
+                    && latitude >= -90 && latitude <= 90
+                    && longitude >= -180 && longitude <= 180;
+            }
+
+            function marcarPonto(latitude, longitude, centralizar) {
+                if (!coordenadasValidas(latitude, longitude)) {
+                    return;
+                }
+
+                const ponto = [latitude, longitude];
+                if (marcador) {
+                    marcador.setLatLng(ponto);
+                } else {
+                    marcador = L.marker(ponto, { draggable: true }).addTo(mapa);
+                    marcador.on('dragend', () => {
+                        const destino = marcador.getLatLng();
+                        marcarPonto(destino.lat, destino.lng, false);
+                    });
+                }
+
+                latitudeInput.value = latitude.toFixed(6);
+                longitudeInput.value = longitude.toFixed(6);
+                mensagem.textContent = 'Local selecionado. Se necessário, arraste o marcador para ajustar.';
+
+                if (centralizar) {
+                    mapa.setView(ponto, Math.max(mapa.getZoom(), 16));
+                }
+            }
+
+            mapa.on('click', (evento) => {
+                marcarPonto(evento.latlng.lat, evento.latlng.lng, false);
+            });
+
+            // Quando o servidor devolve o formulario por erro de validacao, restaura o ponto anterior.
+            function atualizarMarcadorPelosCampos() {
+                if (latitudeInput.value.trim() === '' || longitudeInput.value.trim() === '') {
+                    return;
+                }
+                const latitude = Number(latitudeInput.value);
+                const longitude = Number(longitudeInput.value);
+                if (coordenadasValidas(latitude, longitude)) {
+                    marcarPonto(latitude, longitude, true);
+                }
+            }
+            latitudeInput.addEventListener('change', atualizarMarcadorPelosCampos);
+            longitudeInput.addEventListener('change', atualizarMarcadorPelosCampos);
+            atualizarMarcadorPelosCampos();
+
+            botaoLimpar.addEventListener('click', () => {
+                if (marcador) {
+                    mapa.removeLayer(marcador);
+                    marcador = null;
+                }
+                latitudeInput.value = '';
+                longitudeInput.value = '';
+                mensagem.textContent = 'Marcação removida. Escolha outro ponto ou informe um endereço.';
+            });
+
+            botaoLocalizacao.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    mensagem.textContent = 'Seu navegador não oferece acesso à localização. Escolha o ponto no mapa.';
+                    return;
+                }
+
+                mensagem.textContent = 'Solicitando permissão para acessar sua localização...';
+                navigator.geolocation.getCurrentPosition(
+                    (posicao) => {
+                        marcarPonto(posicao.coords.latitude, posicao.coords.longitude, true);
+                        mensagem.textContent = 'Localização atual marcada. Confira se é onde está o problema.';
+                    },
+                    () => {
+                        mensagem.textContent = 'Não foi possível obter sua localização. Clique no mapa para marcar o problema.';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            });
+        })();
+    </script>
 </body>
+
 </html>

@@ -1,6 +1,7 @@
 package com.tccinfonet.cityreport.modules.usuario.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -135,10 +136,17 @@ public class UsuarioController {
     }
 
     @PostMapping("/{id}/desativar")
-    public String desativar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String desativar(@PathVariable Long id, Authentication autenticacao,
+                           RedirectAttributes redirectAttributes) {
         buscarUsuarioInterno(id);
-        usuarioService.desativar(id);
-        redirectAttributes.addFlashAttribute("mensagemSucesso", "Usuario desativado com sucesso.");
+
+        try {
+            usuarioService.desativar(id, autenticacao.getName());
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Usuario desativado com sucesso.");
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+        }
+
         return "redirect:/atendente/usuarios";
     }
 

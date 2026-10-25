@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - CityReport</title>
+</head>
+<body>
+    <main>
+        <h1>CityReport</h1>
+        <h2>Entrar na conta</h2>
+
+        <p th:if="${param.error}">E-mail ou senha invalidos, ou conta desativada.</p>
+        <p th:if="${param.logout}">Voce saiu da sua conta com sucesso.</p>
+        <p th:if="${param.cadastro}">Cadastro realizado. Faca login para continuar.</p>
+        <p th:if="${param.emailAtualizado}">E-mail atualizado. Entre novamente.</p>
+
+        <!-- O Spring Security usa os nomes 'username' e 'password' por padrao. -->
+        <form th:action="@{/login}" method="post">
+            <div>
+                <label for="email">E-mail</label>
+                <input id="email" type="email" name="username" autocomplete="username" required autofocus>
+            </div>
+            <div>
+                <label for="senha">Senha</label>
+                <input id="senha" type="password" name="password" autocomplete="current-password" required>
+            </div>
+
+            <!-- Mantem a protecao CSRF tambem no formulario de login. -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <button type="submit">Entrar</button>
+        </form>
+
+        <p><a th:href="@{/cidadaos/cadastro}">Criar conta de cidadao</a></p>
+    </main>
+</body>
+</html>

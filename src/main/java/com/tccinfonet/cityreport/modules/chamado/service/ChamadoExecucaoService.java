@@ -54,11 +54,7 @@ public class ChamadoExecucaoService {
     // Somente o responsavel pode iniciar o servico, e apenas um por vez.
     @Transactional
     public Chamado iniciarExecucao(Long chamadoId, String emailAutenticado) {
-        Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
-
-        // Trava apenas o registro do funcionario durante a verificacao.
-        // Evita que dois chamados diferentes sejam iniciados ao mesmo tempo para ele.
-        entityManager.find(Usuario.class, funcionario.getId(), LockModeType.PESSIMISTIC_WRITE);
+        Usuario funcionario = buscarFuncionarioParaOperacao(emailAutenticado);
 
         Chamado chamado = chamadoService.buscarPorId(chamadoId);
         exigirStatus(chamado, StatusChamado.ATRIBUIDO);
@@ -89,7 +85,7 @@ public class ChamadoExecucaoService {
     // O funcionario registra o impedimento e aguarda decisao do atendente.
     @Transactional
     public Chamado registrarImpedimento(Long chamadoId, String justificativa, String emailFuncionario) {
-        Usuario funcionario = buscarFuncionarioAutenticado(emailFuncionario);
+        Usuario funcionario = buscarFuncionarioParaOperacao(emailFuncionario);
         Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
         exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
 
@@ -105,7 +101,7 @@ public class ChamadoExecucaoService {
     // O funcionario conclui sua tentativa enviando obrigatoriamente UMA NOVA foto.
     @Transactional
     public Chamado solicitarFinalizacao(Long chamadoId, MultipartFile fotoSolucao, String emailFuncionario) {
-        Usuario funcionario = buscarFuncionarioAutenticado(emailFuncionario);
+        Usuario funcionario = buscarFuncionarioParaOperacao(emailFuncionario);
         Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
         exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
 
@@ -117,6 +113,18 @@ public class ChamadoExecucaoService {
                 "Execucao enviada para validacao, com fotografia da solucao.",
                 StatusChamado.EM_EXECUCAO, StatusChamado.AGUARDANDO_VALIDACAO);
         return chamado;
+    }
+
+    // A mesma trava usada na desativacao impede que as operacoes se cruzem.
+    // O refresh atualiza o estado da conta depois de obter a trava no banco.
+    private Usuario buscarFuncionarioParaOperacao(String emailAutenticado) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
+        entityManager.refresh(funcionario, LockModeType.PESSIMISTIC_WRITE);
+
+        if (!Boolean.TRUE.equals(funcionario.getAtivo())) {
+            throw new IllegalArgumentException("O funcionario esta inativo.");
+        }
+        return funcionario;
     }
 
     // Confere se o usuario do aplicativo e um funcionario ativo.

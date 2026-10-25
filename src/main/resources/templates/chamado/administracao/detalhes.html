@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisar chamado - CityReport</title>
+    <!-- Leaflet: estilos essenciais para exibir o mapa. -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body>
     <h1 th:text="|Analisar chamado #${chamado.id}|"></h1>
@@ -50,6 +53,21 @@
         <dt>Conclusão</dt>
         <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Não concluído'}"></dd>
     </dl>
+
+    <!-- Apenas leitura: a posicao exibida e a que ja esta gravada no chamado. -->
+    <section>
+        <h2>Localização no mapa</h2>
+        <div th:if="${chamado.latitude != null and chamado.longitude != null}"
+             id="mapa-localizacao"
+             th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
+             role="region" aria-label="Mapa com o local do chamado"
+             style="width: 100%; max-width: 850px; height: 350px;"></div>
+        <p th:if="${chamado.latitude == null or chamado.longitude == null}">
+            Este chamado não possui coordenadas para exibir no mapa.
+            Consulte o endereço informado acima.
+        </p>
+    </section>
+
 
     <p th:if="${chamado.status.name() == 'DUPLICADO' and chamado.chamadoOriginal != null}">
         Este chamado é duplicado do protocolo
@@ -239,5 +257,42 @@
             </tr>
         </tbody>
     </table>
+    <!-- Leaflet: usa a latitude e a longitude do chamado como centro, sem alterar os dados. -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        (function () {
+            const elemento = document.getElementById('mapa-localizacao');
+
+            // Chamados com somente endereco continuam exibindo os dados textuais.
+            if (!elemento) return;
+
+            const latitude = Number(elemento.dataset.latitude);
+            const longitude = Number(elemento.dataset.longitude);
+
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+                Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+                elemento.textContent = 'As coordenadas deste chamado são inválidas.';
+                return;
+            }
+
+            if (typeof L === 'undefined') {
+                elemento.textContent = 'Não foi possível carregar o mapa. Verifique a conexão com a internet.';
+                return;
+            }
+
+            const mapa = L.map(elemento, { scrollWheelZoom: false })
+                          .setView([latitude, longitude], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(mapa);
+
+            L.marker([latitude, longitude])
+             .addTo(mapa)
+             .bindPopup('Local informado no chamado.');
+        })();
+    </script>
 </body>
 </html>

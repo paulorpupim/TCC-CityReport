@@ -15,7 +15,7 @@
     </header>
 
     <main>
-        <section aria-labelledby="titulo-area-pessoal">
+        <section sec:authorize="hasAnyRole('CIDADAO', 'FUNCIONARIO')" aria-labelledby="titulo-area-pessoal">
             <h2 id="titulo-area-pessoal">Minha área</h2>
             <nav aria-label="Funcionalidades pessoais">
                 <ul>
@@ -43,7 +43,7 @@
 
         <section sec:authorize="hasRole('FUNCIONARIO')" aria-labelledby="titulo-funcionario">
             <h2 id="titulo-funcionario">Área do funcionário</h2>
-            <p>As operações de execução dos chamados serão acessadas pelo aplicativo mobile, ainda em desenvolvimento.</p>
+            <p>As operações de execução dos chamados são realizadas pelo aplicativo CityReport Mobile.</p>
         </section>
     </main>
 

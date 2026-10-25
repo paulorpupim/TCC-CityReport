@@ -16,7 +16,11 @@ public class InicioController {
 
     private final UsuarioService usuarioService;
 
-    // Pagina inicial de qualquer usuario autenticado.
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+
     @GetMapping({"/", "/inicio"})
     public String inicio(Authentication autenticacao, Model model) {
         Usuario usuario = usuarioService.buscarPorEmail(autenticacao.getName());

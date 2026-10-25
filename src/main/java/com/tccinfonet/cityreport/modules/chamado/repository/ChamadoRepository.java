@@ -1,5 +1,6 @@
 package com.tccinfonet.cityreport.modules.chamado.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,11 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
     boolean existsByChamadoOriginalId(Long originalId);
 
     boolean existsByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
+
+    // Impede trocar o setor de funcionarios com chamados ainda sob sua responsabilidade.
+    boolean existsByFuncionarioResponsavelIdAndStatusIn(
+            Long funcionarioId, Collection<StatusChamado> status);
+
+    // Chamados em execucao que precisam ser pausados ao desativar um funcionario.
+    List<Chamado> findByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
 }

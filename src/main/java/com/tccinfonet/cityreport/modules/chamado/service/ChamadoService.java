@@ -129,6 +129,12 @@ public class ChamadoService {
             throw new IllegalArgumentException("Nao e possivel cancelar este chamado.");
         }
 
+        // O cancelamento do original deixaria os cidadaos dos duplicados sem atendimento.
+        if (chamadoRepository.existsByChamadoOriginalId(chamadoId)) {
+            throw new IllegalArgumentException(
+                    "Este chamado possui duplicados vinculados e nao pode ser cancelado.");
+        }
+
         String motivo = validarTexto(justificativa, "A justificativa", 1700);
         StatusChamado anterior = chamado.getStatus();
         chamado.setStatus(StatusChamado.CANCELADO);

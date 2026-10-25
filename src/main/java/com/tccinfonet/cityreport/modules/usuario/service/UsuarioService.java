@@ -2,8 +2,17 @@ package com.tccinfonet.cityreport.modules.usuario.service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
+import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
+import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +35,9 @@ public class UsuarioService {
 
     // Recebe o PasswordEncoder (BCrypt) definido no SecurityConfig.
     private final PasswordEncoder passwordEncoder;
+    private final ChamadoRepository chamadoRepository;
+    private final HistoricoChamadoService historicoChamadoService;
+    private final EntityManager entityManager;
 
     // Retorna os usuarios cadastrados, inclusive os inativos.
     public List<Usuario> listarTodos() {
@@ -93,6 +105,23 @@ public class UsuarioService {
         }
 
         Setor setor = validarSetorAtivo(dados.getSetor());
+
+        // A troca de setor nao pode deixar chamados ativos com um responsavel
+        // que nao pertence mais ao setor da categoria.
+        boolean setorMudou = usuario.getSetor() == null
+                || !Objects.equals(usuario.getSetor().getId(), setor.getId());
+
+        if (setorMudou && chamadoRepository.existsByFuncionarioResponsavelIdAndStatusIn(
+                usuario.getId(), List.of(
+                        StatusChamado.ATRIBUIDO,
+                        StatusChamado.EM_EXECUCAO,
+                        StatusChamado.PENDENTE,
+                        StatusChamado.AGUARDANDO_VALIDACAO))) {
+            throw new IllegalArgumentException(
+                    "Nao e possivel trocar o setor: o funcionario possui chamados em andamento. "
+                            + "Reatribua ou conclua esses chamados antes de alterar o setor.");
+        }
+
         atualizarNomeEEmail(usuario, dados);
         usuario.setSetor(setor);
 
@@ -113,10 +142,44 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    // Usuarios inativos permanecem registrados, mas nao poderao realizar novos logins.
+    // Se um funcionario for desativado durante a execucao, pausa seus chamados.
+    // O atendente podera retoma-los depois, escolhendo outro responsavel.
     @Transactional
-    public void desativar(Long id) {
-        Usuario usuario = buscarPorId(id);
+    public void desativar(Long id, String emailAtendente) {
+        Usuario atendente = buscarPorEmail(emailAtendente);
+        if (atendente.getPerfil() != PerfilUsuario.ATENDENTE
+                || !Boolean.TRUE.equals(atendente.getAtivo())) {
+            throw new IllegalArgumentException("Apenas atendentes ativos podem desativar usuarios.");
+        }
+
+        // Usa a mesma trava do inicio de execucao para evitar uma desativacao
+        // simultanea a um novo inicio de servico pelo aplicativo.
+        Usuario usuario = entityManager.find(Usuario.class, id, LockModeType.PESSIMISTIC_WRITE);
+        if (usuario == null) {
+            throw new EntityNotFoundException("Usuario nao encontrado.");
+        }
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            return;
+        }
+
+        if (usuario.getPerfil() == PerfilUsuario.FUNCIONARIO) {
+            List<Chamado> emExecucao = chamadoRepository.findByFuncionarioResponsavelIdAndStatus(
+                    id, StatusChamado.EM_EXECUCAO);
+
+            for (Chamado chamado : emExecucao) {
+                chamado.setStatus(StatusChamado.PENDENTE);
+                chamadoRepository.save(chamado);
+
+                historicoChamadoService.registrar(
+                        chamado,
+                        atendente,
+                        "Execucao pausada porque o funcionario " + usuario.getNome()
+                                + " foi desativado. Aguardando nova atribuicao pelo atendente.",
+                        StatusChamado.EM_EXECUCAO,
+                        StatusChamado.PENDENTE);
+            }
+        }
+
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
     }
