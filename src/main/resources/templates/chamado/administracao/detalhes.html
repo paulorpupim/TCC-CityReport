@@ -9,7 +9,7 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body>
-    <h1 th:text="|Analisar chamado #${chamado.id}|"></h1>
+    <h1 th:text="|Analisar chamado ${chamado.protocolo}|"></h1>
 
     <nav>
         <a th:href="@{/atendente/chamados}">Todos os chamados</a> |
@@ -72,7 +72,7 @@
     <p th:if="${chamado.status.name() == 'DUPLICADO' and chamado.chamadoOriginal != null}">
         Este chamado é duplicado do protocolo
         <a th:href="@{/atendente/chamados/{id}(id=${chamado.chamadoOriginal.id})}"
-           th:text="|#${chamado.chamadoOriginal.id}|"></a>.
+           th:text="${chamado.chamadoOriginal.protocolo}"></a>.
     </p>
 
     <!-- Acoes de triagem: disponiveis somente enquanto o chamado estiver ENVIADO. -->
@@ -125,8 +125,8 @@
         <h2>Marcar como duplicado</h2>
         <form th:action="@{/atendente/chamados/{id}/duplicado(id=${chamado.id})}" method="post">
             <p>
-                <label for="originalId">Protocolo do chamado original:</label>
-                <input type="number" id="originalId" name="originalId" min="1" step="1" required>
+                <label for="protocoloOriginal">Protocolo do chamado original:</label>
+                <input type="text" id="protocoloOriginal" name="protocoloOriginal" placeholder="2026-000001" pattern="[0-9]{4}-[0-9]{6,}" title="Exemplo: 2026-000001" required>
             </p>
             <p>Informe um protocolo existente e válido. O cidadão acompanhará a situação do original.</p>
             <button type="submit">Vincular ao original</button>

@@ -33,7 +33,7 @@
         </thead>
         <tbody>
             <tr th:each="chamado : ${chamados}">
-                <td th:text="${chamado.id}"></td>
+                <td th:text="${chamado.protocolo}"></td>
                 <td th:text="${chamado.titulo}"></td>
                 <td th:text="${chamado.categoria.nome}"></td>
                 <td th:text="${chamado.urgenciaPercebida}"></td>

@@ -35,6 +35,11 @@ public class Chamado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Identificacao publica: 2026-000001, 2027-000001, etc.
+    // A coluna e unica e nunca deve ser alterada apos o cadastro.
+    @Column(nullable = false, unique = true, updatable = false, length = 24)
+    private String protocolo;
+
     @NotBlank(message = "O titulo e obrigatorio.")
     @Size(max = 150, message = "O titulo deve ter no maximo 150 caracteres.")
     @Column(nullable = false, length = 150)

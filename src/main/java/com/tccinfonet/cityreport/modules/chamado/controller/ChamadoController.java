@@ -249,11 +249,11 @@ public class ChamadoController {
 
     @PostMapping("/atendente/chamados/{id}/duplicado")
     public String marcarDuplicado(@PathVariable Long id,
-                                  @RequestParam Long originalId,
+                                  @RequestParam String protocoloOriginal,
                                   Authentication autenticacao,
                                   RedirectAttributes redirectAttributes) {
         return executarAcao(
-                () -> chamadoAtendenteService.marcarDuplicado(id, originalId, autenticacao.getName()),
+                () -> chamadoAtendenteService.marcarDuplicado(id, protocoloOriginal, autenticacao.getName()),
                 "Chamado vinculado ao original.", "/atendente/chamados/" + id, redirectAttributes);
     }
 

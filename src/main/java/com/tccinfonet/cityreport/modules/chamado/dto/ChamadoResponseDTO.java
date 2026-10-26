@@ -8,6 +8,7 @@ import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 
 public record ChamadoResponseDTO(
         Long id,
+        String protocolo,
         String titulo,
         String descricao,
         String categoria,
@@ -23,6 +24,7 @@ public record ChamadoResponseDTO(
     public static ChamadoResponseDTO de(Chamado chamado) {
         return new ChamadoResponseDTO(
                 chamado.getId(),
+                chamado.getProtocolo(),
                 chamado.getTitulo(),
                 chamado.getDescricao(),
                 chamado.getCategoria().getNome(),

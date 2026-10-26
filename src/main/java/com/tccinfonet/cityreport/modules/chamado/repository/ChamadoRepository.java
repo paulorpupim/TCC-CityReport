@@ -2,6 +2,7 @@ package com.tccinfonet.cityreport.modules.chamado.repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,8 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
     List<Chamado> findByCategoriaIdOrderByDataCriacaoDesc(Long categoriaId);
 
     boolean existsByChamadoOriginalId(Long originalId);
+
+    Optional<Chamado> findByProtocolo(String protocolo);
 
     boolean existsByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
 

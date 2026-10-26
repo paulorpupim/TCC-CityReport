@@ -12,6 +12,7 @@ import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamad
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado._protocolo_contador.service.ProtocoloService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class ChamadoService {
 
     private final ChamadoRepository chamadoRepository;
+    private final ProtocoloService protocoloService;
     private final UsuarioService usuarioService;
     private final CategoriaService categoriaService;
     private final HistoricoChamadoService historicoChamadoService;
@@ -85,6 +87,7 @@ public class ChamadoService {
         validarLocalizacao(endereco, dados.getLatitude(), dados.getLongitude());
 
         Chamado chamado = new Chamado();
+        chamado.setProtocolo(protocoloService.gerarProtocolo());
         chamado.setTitulo(titulo);
         chamado.setDescricao(descricao);
         chamado.setEndereco(endereco.isEmpty() ? null : endereco);

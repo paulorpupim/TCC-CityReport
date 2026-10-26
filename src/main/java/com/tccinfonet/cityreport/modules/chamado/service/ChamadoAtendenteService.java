@@ -154,16 +154,20 @@ public class ChamadoAtendenteService {
 
     // Vincula um registro duplicado a um chamado original, sem copiar seu andamento.
     @Transactional
-    public Chamado marcarDuplicado(Long chamadoId, Long originalId, String emailAtendente) {
+    public Chamado marcarDuplicado(Long chamadoId, String protocoloOriginal, String emailAtendente) {
         Usuario atendente = buscarAtendenteAutenticado(emailAtendente);
         Chamado duplicado = chamadoService.buscarPorId(chamadoId);
-        Chamado original = chamadoService.buscarPorId(originalId);
+        if (protocoloOriginal == null || !protocoloOriginal.trim().matches("\\d{4}-\\d{6,}")) {
+            throw new IllegalArgumentException("Informe um protocolo no formato AAAA-000001.");
+        }
+        Chamado original = chamadoRepository.findByProtocolo(protocoloOriginal.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Protocolo original nao encontrado."));
 
         if (duplicado.getStatus() != StatusChamado.ENVIADO
                 && duplicado.getStatus() != StatusChamado.AGUARDANDO_INFORMACOES) {
             throw new IllegalArgumentException("A duplicidade so pode ser definida durante a triagem.");
         }
-        if (Objects.equals(chamadoId, originalId)) {
+        if (Objects.equals(chamadoId, original.getId())) {
             throw new IllegalArgumentException("Um chamado nao pode ser duplicado de si mesmo.");
         }
         if (original.getStatus() == StatusChamado.DUPLICADO
@@ -182,7 +186,7 @@ public class ChamadoAtendenteService {
         duplicado.setStatus(StatusChamado.DUPLICADO);
         chamadoRepository.save(duplicado);
         historicoChamadoService.registrar(duplicado, atendente,
-                "Chamado identificado como duplicado do protocolo " + original.getId() + ".",
+                "Chamado identificado como duplicado do protocolo " + original.getProtocolo() + ".",
                 anterior, StatusChamado.DUPLICADO);
         return duplicado;
     }
