@@ -75,6 +75,19 @@
            th:text="${chamado.chamadoOriginal.protocolo}"></a>.
     </p>
 
+    <!-- Ultimo registro de cada assunto; o historico completo continua abaixo. -->
+    <section th:if="${!#lists.isEmpty(atualizacoes)}" aria-labelledby="titulo-atualizacoes">
+        <h2 id="titulo-atualizacoes">Atualizações do chamado</h2>
+        <p>Informações mais recentes de cada assunto. Para ver todas as movimentações, consulte o histórico.</p>
+        <article th:each="atualizacao : ${atualizacoes}"
+                 style="border: 1px solid #cccccc; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <h3 th:text="${atualizacao.titulo}"></h3>
+            <p th:text="${atualizacao.texto}" style="white-space: pre-wrap;"></p>
+            <small th:if="${atualizacao.dataHora != null}"
+                   th:text="${#temporals.format(atualizacao.dataHora, 'dd/MM/yyyy HH:mm')}"></small>
+        </article>
+    </section>
+
     <!-- Acoes de triagem: disponiveis somente enquanto o chamado estiver ENVIADO. -->
     <section th:if="${chamado.status.name() == 'ENVIADO'}">
         <h2>Aprovar triagem</h2>

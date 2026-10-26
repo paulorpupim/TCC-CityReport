@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAtualizacao;
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
@@ -82,6 +83,22 @@ public class ChamadoExecucaoService {
         return salvo;
     }
 
+    // Observacoes sobre o trabalho executado: sem alterar o status do chamado.
+    // Qualquer quantidade de registros pode ser adicionada durante a execucao.
+    @Transactional
+    public Chamado registrarObservacao(Long chamadoId, String observacao, String emailFuncionario) {
+        Usuario funcionario = buscarFuncionarioParaOperacao(emailFuncionario);
+        Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
+        exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
+
+        String texto = validarTexto(observacao, "A observacao", 1700);
+        historicoChamadoService.registrar(chamado, funcionario,
+                "Observacao de execucao: " + texto,
+                null, null, TipoAtualizacao.OBSERVACAO_EXECUCAO);
+
+        return chamado;
+    }
+
     // O funcionario registra o impedimento e aguarda decisao do atendente.
     @Transactional
     public Chamado registrarImpedimento(Long chamadoId, String justificativa, String emailFuncionario) {
@@ -94,7 +111,8 @@ public class ChamadoExecucaoService {
         chamadoRepository.save(chamado);
         historicoChamadoService.registrar(chamado, funcionario,
                 "Execucao impedida. Justificativa: " + motivo,
-                StatusChamado.EM_EXECUCAO, StatusChamado.PENDENTE);
+                StatusChamado.EM_EXECUCAO, StatusChamado.PENDENTE,
+                TipoAtualizacao.IMPEDIMENTO);
         return chamado;
     }
 

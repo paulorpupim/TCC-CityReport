@@ -85,9 +85,22 @@
         </form>
     </section>
 
+    <!-- Ultimo registro de cada assunto; o historico completo continua abaixo. -->
+    <section th:if="${!#lists.isEmpty(atualizacoes)}" aria-labelledby="titulo-atualizacoes">
+        <h2 id="titulo-atualizacoes">Atualizações do chamado</h2>
+        <p>Informações mais recentes de cada assunto. Para ver todas as movimentações, consulte o histórico.</p>
+        <article th:each="atualizacao : ${atualizacoes}"
+                 style="border: 1px solid #cccccc; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <h3 th:text="${atualizacao.titulo}"></h3>
+            <p th:text="${atualizacao.texto}" style="white-space: pre-wrap;"></p>
+            <small th:if="${atualizacao.dataHora != null}"
+                   th:text="${#temporals.format(atualizacao.dataHora, 'dd/MM/yyyy HH:mm')}"></small>
+        </article>
+    </section>
+
     <section th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
         <h2>Responder à solicitação de informações</h2>
-        <p>Consulte a solicitação da equipe no histórico abaixo.</p>
+        <p>Confira a última solicitação acima, em Atualizações do chamado, e responda abaixo.</p>
         <form th:action="@{/chamados/{id}/complementar(id=${chamado.id})}" method="post">
             <p>
                 <label for="resposta">Informações complementares:</label>
@@ -115,7 +128,10 @@
     </section>
 
     <h2>Fotografias registradas</h2>
-    <p th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia registrada.</p>
+    <p th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
+        As fotografias da solução serão exibidas após a aprovação da conclusão pelo atendente.
+    </p>
+    <p th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia disponível para visualização.</p>
     <ul th:unless="${#lists.isEmpty(fotos)}">
         <li th:each="foto : ${fotos}">
             <span th:text="${foto.tipo}"></span> —

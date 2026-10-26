@@ -12,5 +12,7 @@ import com.tccinfonet.cityreport.modules.chamado._historico_chamado.entity.Histo
 public interface HistoricoChamadoRepository extends JpaRepository<HistoricoChamado, Long> {
 
     List<HistoricoChamado> findByChamadoIdOrderByDataHoraAscIdAsc(Long chamadoId);
+
+    List<HistoricoChamado> findByChamadoIdOrderByDataHoraDescIdDesc(Long chamadoId);
     
 }

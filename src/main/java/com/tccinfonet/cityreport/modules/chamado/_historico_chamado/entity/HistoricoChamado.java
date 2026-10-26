@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Immutable;
 
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAtualizacao;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
@@ -56,6 +57,11 @@ public class HistoricoChamado {
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private StatusChamado statusNovo;
+
+    // Opcional: os registros sem destaque nao precisam de um tipo.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 40)
+    private TipoAtualizacao tipoAtualizacao;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

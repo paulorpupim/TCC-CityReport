@@ -23,11 +23,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.tccinfonet.cityreport.modules.categoria.entity.Categoria;
 import com.tccinfonet.cityreport.modules.categoria.service.CategoriaService;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamado;
+import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.dto.CriarChamadoDTO;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
+import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoAtendenteService;
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoService;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
@@ -95,7 +97,11 @@ public class ChamadoController {
         model.addAttribute("chamado", chamado);
         model.addAttribute("statusAcompanhamento", chamadoService.consultarAndamento(id, autenticacao.getName()));
         model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
-        model.addAttribute("fotos", fotoChamadoService.listarPorChamado(id));
+        model.addAttribute("atualizacoes", historicoChamadoService.listarAtualizacoesDoCidadao(id));
+        // Fotos da solucao so sao publicadas apos a aprovacao do atendente.
+        model.addAttribute("fotos", chamado.getStatus() == StatusChamado.RESOLVIDO
+                ? fotoChamadoService.listarPorChamado(id)
+                : fotoChamadoService.listarPorChamadoETipo(id, TipoFoto.PROBLEMA));
         return "chamado/detalhes";
     }
 
@@ -165,6 +171,14 @@ public class ChamadoController {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Foto nao pertence a este chamado.");
             }
 
+            // Esconder a foto apenas no HTML nao basta: bloquear tambem o acesso
+            // direto por URL enquanto a conclusao nao for aprovada.
+            // Atendente e funcionario responsavel continuam autorizados.
+            if (foto.getTipo() == TipoFoto.SOLUCAO && autor && !atendente
+                    && !funcionarioResponsavel && chamado.getStatus() != StatusChamado.RESOLVIDO) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fotografia nao encontrada.");
+            }
+
             // O formato e definido pelo nome gerado no servidor, nunca por um parametro da URL.
             String nome = foto.getCaminhoArquivo();
             MediaType tipo = nome.endsWith(".png") ? MediaType.IMAGE_PNG
@@ -196,6 +210,7 @@ public class ChamadoController {
 
         model.addAttribute("chamado", chamado);
         model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
+        model.addAttribute("atualizacoes", historicoChamadoService.listarAtualizacoes(id, false));
         model.addAttribute("fotos", fotoChamadoService.listarPorChamado(id));
         model.addAttribute("categorias", categoriaService.listarAtivas());
         model.addAttribute("prioridades", Prioridade.values());

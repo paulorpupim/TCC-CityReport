@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tccinfonet.cityreport.modules.categoria.entity.Categoria;
 import com.tccinfonet.cityreport.modules.categoria.service.CategoriaService;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAtualizacao;
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
@@ -148,7 +149,7 @@ public class ChamadoAtendenteService {
         chamadoRepository.save(chamado);
         historicoChamadoService.registrar(chamado, atendente,
                 "Chamado recusado. Justificativa: " + motivo,
-                anterior, StatusChamado.RECUSADO);
+                anterior, StatusChamado.RECUSADO, TipoAtualizacao.RECUSA_CHAMADO);
         return chamado;
     }
 
@@ -203,7 +204,8 @@ public class ChamadoAtendenteService {
         chamadoRepository.save(chamado);
         historicoChamadoService.registrar(chamado, atendente,
                 "Informacoes solicitadas: " + mensagem,
-                StatusChamado.ENVIADO, StatusChamado.AGUARDANDO_INFORMACOES);
+                StatusChamado.ENVIADO, StatusChamado.AGUARDANDO_INFORMACOES,
+                TipoAtualizacao.SOLICITACAO_INFORMACOES);
         return chamado;
     }
 
@@ -270,7 +272,8 @@ public class ChamadoAtendenteService {
                 ? " Novo responsavel: " + responsavel.getNome() + "." : "";
         historicoChamadoService.registrar(chamado, atendente,
                 "Execucao reprovada. Justificativa: " + motivo + "." + troca,
-                StatusChamado.AGUARDANDO_VALIDACAO, StatusChamado.ATRIBUIDO);
+                StatusChamado.AGUARDANDO_VALIDACAO, StatusChamado.ATRIBUIDO,
+                TipoAtualizacao.REPROVACAO_EXECUCAO);
         return chamado;
     }
 

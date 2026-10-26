@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tccinfonet.cityreport.modules.chamado.dto.ChamadoResponseDTO;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.dto.AtualizacaoChamadoDTO;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.dto.FotoChamadoResponseDTO;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamado;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
@@ -39,12 +41,11 @@ import lombok.RequiredArgsConstructor;
 public class ChamadoExecucaoController {
 
     private final ChamadoExecucaoService chamadoExecucaoService;
+    private final HistoricoChamadoService historicoChamadoService;
     private final FotoChamadoService fotoChamadoService;
 
     // A ApiSecurityConfig exige um JWT valido de um FUNCIONARIO ativo em /api/**.
     // O Service confere se o chamado pertence ao funcionario autenticado.
-
-    // GET /api/chamados
     @GetMapping
     public List<ChamadoResponseDTO> listar(Authentication autenticacao) {
         return chamadoExecucaoService.listarDoFuncionario(autenticacao.getName())
@@ -58,6 +59,15 @@ public class ChamadoExecucaoController {
     public ChamadoResponseDTO detalhes(@PathVariable Long id, Authentication autenticacao) {
         return ChamadoResponseDTO.de(
                 chamadoExecucaoService.buscarDoFuncionario(id, autenticacao.getName()));
+    }
+
+    // GET /api/chamados/{id}/atualizacoes: destaques de execucao, NAO o historico completo.
+    @GetMapping("/{id}/atualizacoes")
+    public List<AtualizacaoChamadoDTO> listarAtualizacoes(
+            @PathVariable Long id, Authentication autenticacao) {
+        // Primeiro verifica se o chamado pertence ao funcionario autenticado.
+        chamadoExecucaoService.buscarDoFuncionario(id, autenticacao.getName());
+        return historicoChamadoService.listarAtualizacoes(id, true);
     }
 
     // GET /api/chamados/{id}/fotos: apenas fotos do problema.
@@ -120,6 +130,17 @@ public class ChamadoExecucaoController {
                 id, dados.justificativa(), autenticacao.getName()));
     }
 
+    // POST /api/chamados/{id}/observacoes (JSON: {"observacao":"..."})
+    @PostMapping("/{id}/observacoes")
+    public ChamadoResponseDTO registrarObservacao(
+            @PathVariable Long id,
+            @Valid @RequestBody ObservacaoRequestDTO dados,
+            Authentication autenticacao) {
+
+        return ChamadoResponseDTO.de(chamadoExecucaoService.registrarObservacao(
+                id, dados.observacao(), autenticacao.getName()));
+    }
+
     // POST /api/chamados/{id}/finalizar (multipart/form-data: campo "foto")
     @PostMapping(value = "/{id}/finalizar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ChamadoResponseDTO finalizar(
@@ -149,6 +170,13 @@ public class ChamadoExecucaoController {
         return ResponseEntity.status(status)
                 .body(Map.of("erro", erro.getMessage()));
     }
+
+    // DTO pequeno para observacoes de execucao, sem precisar de um novo arquivo.
+    public record ObservacaoRequestDTO(
+            @NotBlank(message = "A observacao e obrigatoria.")
+            @Size(max = 1700, message = "A observacao deve ter no maximo 1700 caracteres.")
+            String observacao
+    ) {}
 
     // DTO pequeno para receber a justificativa em JSON sem criar outro arquivo.
     public record ImpedimentoRequestDTO(
