@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,6 +56,30 @@ public class FotoChamadoService {
     // Lista somente fotos do problema ou somente fotos da solucao.
     public List<FotoChamado> listarPorChamadoETipo(Long chamadoId, TipoFoto tipo) {
         return fotoChamadoRepository.findByChamadoIdAndTipoOrderByDataEnvioAscIdAsc(chamadoId, tipo);
+    }
+
+    // Para o cidadao, somente fotos do problema e a solucao da ULTIMA
+    // tentativa, quando o atendente tiver aprovado o chamado.
+    // Cada envio de finalizacao armazena uma unica nova foto de SOLUCAO.
+    public List<FotoChamado> listarFotosParaCidadao(Chamado chamado) {
+        List<FotoChamado> fotos = new ArrayList<>(listarPorChamadoETipo(
+                chamado.getId(), TipoFoto.PROBLEMA));
+
+        if (chamado.getStatus() == StatusChamado.RESOLVIDO) {
+            fotoChamadoRepository.findFirstByChamadoIdAndTipoOrderByDataEnvioDescIdDesc(
+                    chamado.getId(), TipoFoto.SOLUCAO).ifPresent(fotos::add);
+        }
+        return fotos;
+    }
+
+    // Usado tambem pela rota de imagem; nao basta ocultar as fotos no HTML.
+    public boolean ehFotoDeSolucaoAprovada(Chamado chamado, FotoChamado foto) {
+        return chamado.getStatus() == StatusChamado.RESOLVIDO
+                && foto.getTipo() == TipoFoto.SOLUCAO
+                && fotoChamadoRepository.findFirstByChamadoIdAndTipoOrderByDataEnvioDescIdDesc(
+                        chamado.getId(), TipoFoto.SOLUCAO)
+                        .map(ultima -> Objects.equals(ultima.getId(), foto.getId()))
+                        .orElse(false);
     }
 
     // Busca os metadados da foto registrada no banco.

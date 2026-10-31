@@ -2,6 +2,10 @@
 package com.tccinfonet.cityreport.modules.categoria.service;
 
 import java.util.List;
+import java.util.Objects;
+
+import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
+import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +25,15 @@ public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
     private final SetorService setorService;
+    private final ChamadoRepository chamadoRepository;
+
+    // Nesses estados ja existe (ou pode existir) um funcionario responsavel.
+    // Alterar o setor da categoria poderia invalidar a atribuicao atual.
+    private static final List<StatusChamado> STATUS_COM_SERVICO_ATIVO = List.of(
+            StatusChamado.ATRIBUIDO,
+            StatusChamado.EM_EXECUCAO,
+            StatusChamado.PENDENTE,
+            StatusChamado.AGUARDANDO_VALIDACAO);
 
     public List<Categoria> listarTodas() {
         return categoriaRepository.findAllByOrderByNomeAsc();
@@ -64,6 +77,15 @@ public class CategoriaService {
 
         if (categoriaRepository.existsByNomeIgnoreCaseAndSetorIdAndIdNot(nome, setor.getId(), id)) {
             throw new IllegalArgumentException("Já existe outra categoria com esse nome neste setor.");
+        }
+
+        // Renomear e permitido. Bloquear apenas a mudanca do setor quando ainda
+        // ha chamados em atendimento que dependem da compatibilidade do funcionario.
+        if (!Objects.equals(categoria.getSetor().getId(), setor.getId())
+                && chamadoRepository.existsByCategoriaIdAndStatusIn(id, STATUS_COM_SERVICO_ATIVO)) {
+            throw new IllegalArgumentException(
+                    "Não é possível alterar o setor desta categoria enquanto houver chamados "
+                    + "atribuídos ou em atendimento vinculados a ela.");
         }
 
         categoria.setNome(nome);

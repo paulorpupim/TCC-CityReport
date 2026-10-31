@@ -12,14 +12,62 @@
         <a th:href="@{/atendente/chamados}">Chamados</a> |
         <a th:href="@{/atendente/categorias}">Categorias</a> |
         <a th:href="@{/atendente/setores}">Setores</a> |
-        <a th:href="@{/atendente/usuarios}">Usuários</a> |
-        <a th:href="@{/cidadaos/perfil}">Meu perfil</a>
+        <a th:href="@{/atendente/usuarios}">Usuários</a>
     </nav>
 
     <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
     <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
 
-    <p th:if="${#lists.isEmpty(chamados)}">Nenhum chamado registrado.</p>
+    <section aria-labelledby="titulo-filtros">
+        <h2 id="titulo-filtros">Pesquisar e filtrar chamados</h2>
+        <form th:action="@{/atendente/chamados}" method="get">
+            <div>
+                <label for="busca">Protocolo ou título</label>
+                <input type="search" id="busca" name="busca" maxlength="150"
+                       placeholder="Ex.: 2026-000001 ou buraco" th:value="${busca}">
+            </div>
+
+            <div>
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">Todos os status</option>
+                    <option th:each="opcao : ${statusDisponiveis}"
+                            th:value="${opcao.name()}"
+                            th:text="${#strings.replace(opcao.name(), '_', ' ')}"
+                            th:selected="${opcao == statusSelecionado}">Status</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="prioridade">Prioridade oficial</label>
+                <select id="prioridade" name="prioridade">
+                    <option value="">Todas as prioridades</option>
+                    <option th:each="opcao : ${prioridades}"
+                            th:value="${opcao.name()}"
+                            th:text="${opcao.name()}"
+                            th:selected="${opcao == prioridadeSelecionada}">Prioridade</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="categoriaId">Categoria</label>
+                <select id="categoriaId" name="categoriaId">
+                    <option value="">Todas as categorias</option>
+                    <option th:each="categoria : ${categorias}"
+                            th:value="${categoria.id}"
+                            th:text="${categoria.nome + ' — ' + categoria.setor.nome + (categoria.ativo ? '' : ' (inativa)')}"
+                            th:selected="${categoria.id == categoriaSelecionada}">Categoria</option>
+                </select>
+            </div>
+
+            <button type="submit">Pesquisar</button>
+            <a th:href="@{/atendente/chamados}">Limpar filtros</a>
+        </form>
+    </section>
+
+    <p th:text="|Chamados encontrados: ${#lists.size(chamados)}|"></p>
+    <p th:if="${#lists.isEmpty(chamados)}"
+       th:text="${filtrosAplicados} ? 'Nenhum chamado corresponde aos filtros informados.' : 'Nenhum chamado registrado.'"></p>
 
     <table th:unless="${#lists.isEmpty(chamados)}">
         <thead>

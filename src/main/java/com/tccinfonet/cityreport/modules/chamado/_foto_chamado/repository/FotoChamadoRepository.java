@@ -2,6 +2,7 @@
 package com.tccinfonet.cityreport.modules.chamado._foto_chamado.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,7 @@ public interface FotoChamadoRepository extends JpaRepository<FotoChamado, Long> 
     List<FotoChamado> findByChamadoIdAndTipoOrderByDataEnvioAscIdAsc(Long chamadoId, TipoFoto tipo);
 
     boolean existsByChamadoIdAndTipo(Long chamadoId, TipoFoto tipo);
+
+    Optional<FotoChamado> findFirstByChamadoIdAndTipoOrderByDataEnvioDescIdDesc(
+            Long chamadoId, TipoFoto tipo);
 }

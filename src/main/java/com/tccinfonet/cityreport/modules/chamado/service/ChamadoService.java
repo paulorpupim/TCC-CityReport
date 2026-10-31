@@ -1,7 +1,11 @@
 package com.tccinfonet.cityreport.modules.chamado.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,12 +19,14 @@ import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAt
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado._protocolo_contador.service.ProtocoloService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
+import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.service.UsuarioService;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -38,6 +44,42 @@ public class ChamadoService {
     // Consultas administrativas: lista todos os chamados e busca um pelo ID.
     public List<Chamado> listarTodos() {
         return chamadoRepository.findAllByOrderByDataCriacaoDesc();
+    }
+
+    // Pesquisa administrativa: filtros opcionais combinados diretamente no banco.
+    // Os chamados mais recentes aparecem primeiro, mesmo quando nao ha filtros.
+    public List<Chamado> pesquisarChamados(String busca, StatusChamado status,
+                                          Prioridade prioridade, Long categoriaId) {
+        String termo = busca == null ? "" : busca.trim();
+        if (termo.length() > 150) {
+            throw new IllegalArgumentException("A pesquisa deve ter no maximo 150 caracteres.");
+        }
+
+        Specification<Chamado> filtros = (root, query, cb) -> {
+            List<Predicate> condicoes = new ArrayList<>();
+
+            if (!termo.isEmpty()) {
+                String padrao = "%" + termo.toLowerCase(Locale.ROOT) + "%";
+                condicoes.add(cb.or(
+                        cb.like(cb.lower(root.get("protocolo")), padrao),
+                        cb.like(cb.lower(root.get("titulo")), padrao)
+                ));
+            }
+            if (status != null) {
+                condicoes.add(cb.equal(root.get("status"), status));
+            }
+            if (prioridade != null) {
+                condicoes.add(cb.equal(root.get("prioridadeOficial"), prioridade));
+            }
+            if (categoriaId != null) {
+                condicoes.add(cb.equal(root.get("categoria").get("id"), categoriaId));
+            }
+
+            return cb.and(condicoes.toArray(new Predicate[0]));
+        };
+
+        return chamadoRepository.findAll(filtros,
+                Sort.by(Sort.Direction.DESC, "dataCriacao", "id"));
     }
 
     public Chamado buscarPorId(Long id) {

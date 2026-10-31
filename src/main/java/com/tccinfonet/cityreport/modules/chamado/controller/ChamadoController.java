@@ -98,10 +98,8 @@ public class ChamadoController {
         model.addAttribute("statusAcompanhamento", chamadoService.consultarAndamento(id, autenticacao.getName()));
         model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
         model.addAttribute("atualizacoes", historicoChamadoService.listarAtualizacoesDoCidadao(id));
-        // Fotos da solucao so sao publicadas apos a aprovacao do atendente.
-        model.addAttribute("fotos", chamado.getStatus() == StatusChamado.RESOLVIDO
-                ? fotoChamadoService.listarPorChamado(id)
-                : fotoChamadoService.listarPorChamadoETipo(id, TipoFoto.PROBLEMA));
+        // Fotos do problema e somente a solucao efetivamente aprovada.
+        model.addAttribute("fotos", fotoChamadoService.listarFotosParaCidadao(chamado));
         return "chamado/detalhes";
     }
 
@@ -171,11 +169,13 @@ public class ChamadoController {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Foto nao pertence a este chamado.");
             }
 
-            // Esconder a foto apenas no HTML nao basta: bloquear tambem o acesso
-            // direto por URL enquanto a conclusao nao for aprovada.
-            // Atendente e funcionario responsavel continuam autorizados.
+            // O cidadao so pode ver a foto da ultima tentativa APROVADA.
+            // Fotos de tentativas reprovadas tambem ficam bloqueadas por URL,
+            // mesmo quando o chamado ja foi resolvido.
+            // Atendente e funcionario responsavel preservam o acesso interno.
             if (foto.getTipo() == TipoFoto.SOLUCAO && autor && !atendente
-                    && !funcionarioResponsavel && chamado.getStatus() != StatusChamado.RESOLVIDO) {
+                    && !funcionarioResponsavel
+                    && !fotoChamadoService.ehFotoDeSolucaoAprovada(chamado, foto)) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fotografia nao encontrada.");
             }
 
@@ -199,8 +199,27 @@ public class ChamadoController {
     // O Spring Security restringe /atendente/** ao perfil ATENDENTE.
 
     @GetMapping("/atendente/chamados")
-    public String listarTodos(Model model) {
-        model.addAttribute("chamados", chamadoService.listarTodos());
+    public String listarTodos(@RequestParam(required = false) String busca,
+                              @RequestParam(required = false) StatusChamado status,
+                              @RequestParam(required = false) Prioridade prioridade,
+                              @RequestParam(required = false) Long categoriaId,
+                              Model model) {
+        String termo = busca == null ? "" : busca.trim();
+        if (termo.length() > 150) {
+            termo = termo.substring(0, 150);
+        }
+
+        model.addAttribute("chamados", chamadoService.pesquisarChamados(termo, status, prioridade, categoriaId));
+        model.addAttribute("busca", termo);
+        model.addAttribute("statusSelecionado", status);
+        model.addAttribute("prioridadeSelecionada", prioridade);
+        model.addAttribute("categoriaSelecionada", categoriaId);
+        model.addAttribute("statusDisponiveis", StatusChamado.values());
+        model.addAttribute("prioridades", Prioridade.values());
+        // Inclui categorias inativas para permitir pesquisas em chamados antigos.
+        model.addAttribute("categorias", categoriaService.listarTodas());
+        model.addAttribute("filtrosAplicados", !termo.isBlank() || status != null
+                || prioridade != null || categoriaId != null);
         return "chamado/administracao/lista";
     }
 
