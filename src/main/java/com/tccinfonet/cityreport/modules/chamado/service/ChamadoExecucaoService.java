@@ -83,22 +83,6 @@ public class ChamadoExecucaoService {
         return salvo;
     }
 
-    // Observacoes sobre o trabalho executado: sem alterar o status do chamado.
-    // Qualquer quantidade de registros pode ser adicionada durante a execucao.
-    @Transactional
-    public Chamado registrarObservacao(Long chamadoId, String observacao, String emailFuncionario) {
-        Usuario funcionario = buscarFuncionarioParaOperacao(emailFuncionario);
-        Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
-        exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
-
-        String texto = validarTexto(observacao, "A observacao", 1700);
-        historicoChamadoService.registrar(chamado, funcionario,
-                "Observacao de execucao: " + texto,
-                null, null, TipoAtualizacao.OBSERVACAO_EXECUCAO);
-
-        return chamado;
-    }
-
     // O funcionario registra o impedimento e aguarda decisao do atendente.
     @Transactional
     public Chamado registrarImpedimento(Long chamadoId, String justificativa, String emailFuncionario) {
@@ -116,15 +100,28 @@ public class ChamadoExecucaoService {
         return chamado;
     }
 
-    // O funcionario conclui sua tentativa enviando obrigatoriamente UMA NOVA foto.
+    // Finalizacao: nova foto obrigatoria e observacao opcional, na mesma operacao.
+    // A observacao fica no historico, sem criar novas tabelas ou alterar o status separadamente.
     @Transactional
-    public Chamado solicitarFinalizacao(Long chamadoId, MultipartFile fotoSolucao, String emailFuncionario) {
+    public Chamado solicitarFinalizacao(Long chamadoId, MultipartFile fotoSolucao,
+                                       String observacao, String emailFuncionario) {
         Usuario funcionario = buscarFuncionarioParaOperacao(emailFuncionario);
         Chamado chamado = buscarDoFuncionario(chamadoId, emailFuncionario);
         exigirStatus(chamado, StatusChamado.EM_EXECUCAO);
 
-        // A foto e validada e armazenada antes de permitir mudar o status.
+        String textoObservacao = observacao == null ? "" : observacao.trim();
+        if (textoObservacao.length() > 1700) {
+            throw new IllegalArgumentException("A observacao deve ter no maximo 1700 caracteres.");
+        }
+
+        // Foto, observacao (se houver) e mudanca de status usam a mesma transacao.
         fotoChamadoService.salvarFoto(chamado, funcionario, TipoFoto.SOLUCAO, fotoSolucao);
+        if (!textoObservacao.isEmpty()) {
+            historicoChamadoService.registrar(chamado, funcionario,
+                    "Observacao de execucao: " + textoObservacao,
+                    null, null, TipoAtualizacao.OBSERVACAO_EXECUCAO);
+        }
+
         chamado.setStatus(StatusChamado.AGUARDANDO_VALIDACAO);
         chamadoRepository.save(chamado);
         historicoChamadoService.registrar(chamado, funcionario,

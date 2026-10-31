@@ -152,7 +152,6 @@
         <thead>
             <tr>
                 <th scope="col">Data e hora</th>
-                <th scope="col">Descrição</th>
                 <th scope="col">Situação anterior</th>
                 <th scope="col">Nova situação</th>
             </tr>
@@ -160,7 +159,6 @@
         <tbody>
             <tr th:each="registro : ${historico}">
                 <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}"></td>
-                <td th:text="${registro.descricao}"></td>
                 <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}"></td>
                 <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}"></td>
             </tr>

@@ -12,7 +12,7 @@
     <h1 th:text="|Analisar chamado ${chamado.protocolo}|"></h1>
 
     <nav>
-        <a th:href="@{/atendente/chamados}">Todos os chamados</a> |
+        <a th:href="@{/atendente/chamados(aba='todos')}">Todos os chamados</a> |
         <a th:href="@{/atendente/categorias}">Categorias</a> |
         <a th:href="@{/atendente/usuarios}">Usuários</a>
     </nav>

@@ -1,6 +1,11 @@
 package com.tccinfonet.cityreport.modules.chamado.controller;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -198,28 +203,77 @@ public class ChamadoController {
     // ======================= AREA DO ATENDENTE =======================
     // O Spring Security restringe /atendente/** ao perfil ATENDENTE.
 
+    // Uma unica pagina Thymeleaf, com abas por etapa do atendimento.
+    // As quatro abas operacionais usam grupos de prioridade; "Todos" usa lista unica.
     @GetMapping("/atendente/chamados")
-    public String listarTodos(@RequestParam(required = false) String busca,
-                              @RequestParam(required = false) StatusChamado status,
-                              @RequestParam(required = false) Prioridade prioridade,
-                              @RequestParam(required = false) Long categoriaId,
+    public String listarTodos(@RequestParam(defaultValue = "pre-aprovacao") String aba,
+                              @RequestParam(required = false) String busca,
+                              @RequestParam(name = "status", required = false) List<StatusChamado> statusFiltro,
+                              @RequestParam(name = "prioridade", required = false) List<Prioridade> prioridadeFiltro,
+                              @RequestParam(name = "categoriaId", required = false) List<Long> categoriaFiltro,
                               Model model) {
+        Set<String> abas = Set.of("pre-aprovacao", "em-aberto", "em-atendimento", "aguardando-validacao", "todos");
+        if (!abas.contains(aba)) {
+            aba = "pre-aprovacao";
+        }
         String termo = busca == null ? "" : busca.trim();
         if (termo.length() > 150) {
             termo = termo.substring(0, 150);
         }
+        List<Long> categoriasSelecionadas = categoriaFiltro == null ? List.of()
+                : categoriaFiltro.stream().filter(Objects::nonNull).distinct().toList();
+        // Status e prioridade escolhidos pelo atendente so sao filtros na aba Todos.
+        List<StatusChamado> statusSelecionados = "todos".equals(aba) && statusFiltro != null
+                ? statusFiltro.stream().filter(Objects::nonNull).distinct().toList() : List.of();
+        List<Prioridade> prioridadesSelecionadas = "todos".equals(aba) && prioridadeFiltro != null
+                ? prioridadeFiltro.stream().filter(Objects::nonNull).distinct().toList() : List.of();
 
-        model.addAttribute("chamados", chamadoService.pesquisarChamados(termo, status, prioridade, categoriaId));
+        List<StatusChamado> statusDaAba = switch (aba) {
+            case "pre-aprovacao" -> List.of(StatusChamado.ENVIADO);
+            case "em-aberto" -> List.of(StatusChamado.ABERTO);
+            case "em-atendimento" -> List.of(StatusChamado.ATRIBUIDO, StatusChamado.EM_EXECUCAO,
+                    StatusChamado.PENDENTE);
+            case "aguardando-validacao" -> List.of(StatusChamado.AGUARDANDO_VALIDACAO);
+            default -> statusSelecionados;
+        };
+        List<Chamado> chamados = chamadoService.pesquisarChamados(
+                termo, statusDaAba, prioridadesSelecionadas, categoriasSelecionadas);
+
+        model.addAttribute("aba", aba);
+        model.addAttribute("chamados", chamados);
         model.addAttribute("busca", termo);
-        model.addAttribute("statusSelecionado", status);
-        model.addAttribute("prioridadeSelecionada", prioridade);
-        model.addAttribute("categoriaSelecionada", categoriaId);
+        model.addAttribute("categoriasSelecionadas", categoriasSelecionadas);
+        model.addAttribute("statusSelecionados", statusSelecionados);
+        model.addAttribute("prioridadesSelecionadas", prioridadesSelecionadas);
         model.addAttribute("statusDisponiveis", StatusChamado.values());
         model.addAttribute("prioridades", Prioridade.values());
-        // Inclui categorias inativas para permitir pesquisas em chamados antigos.
         model.addAttribute("categorias", categoriaService.listarTodas());
-        model.addAttribute("filtrosAplicados", !termo.isBlank() || status != null
-                || prioridade != null || categoriaId != null);
+        model.addAttribute("filtrosAplicados", !termo.isBlank() || !categoriasSelecionadas.isEmpty()
+                || !statusSelecionados.isEmpty() || !prioridadesSelecionadas.isEmpty());
+
+        if (!"todos".equals(aba)) {
+            // Na pre-aprovacao a prioridade oficial ainda nao foi definida.
+            boolean usarUrgencia = "pre-aprovacao".equals(aba);
+            List<Prioridade> ordem = List.of(Prioridade.CRITICA, Prioridade.ALTA,
+                    Prioridade.MEDIA, Prioridade.BAIXA);
+            Map<Prioridade, List<Chamado>> grupos = new LinkedHashMap<>();
+            for (Prioridade prioridade : ordem) {
+                grupos.put(prioridade, new ArrayList<>());
+            }
+            List<Chamado> semPrioridade = new ArrayList<>();
+            for (Chamado chamado : chamados) {
+                Prioridade prioridade = usarUrgencia
+                        ? chamado.getUrgenciaPercebida() : chamado.getPrioridadeOficial();
+                if (prioridade == null) {
+                    semPrioridade.add(chamado);
+                } else {
+                    grupos.get(prioridade).add(chamado);
+                }
+            }
+            model.addAttribute("gruposPrioridade", grupos);
+            model.addAttribute("semPrioridade", semPrioridade);
+            model.addAttribute("usarUrgencia", usarUrgencia);
+        }
         return "chamado/administracao/lista";
     }
 

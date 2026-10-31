@@ -1,6 +1,7 @@
 package com.tccinfonet.cityreport.modules.chamado.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -46,10 +47,12 @@ public class ChamadoService {
         return chamadoRepository.findAllByOrderByDataCriacaoDesc();
     }
 
-    // Pesquisa administrativa: filtros opcionais combinados diretamente no banco.
-    // Os chamados mais recentes aparecem primeiro, mesmo quando nao ha filtros.
-    public List<Chamado> pesquisarChamados(String busca, StatusChamado status,
-                                          Prioridade prioridade, Long categoriaId) {
+    // Pesquisa administrativa por multiplos status, prioridades e categorias.
+    // Filtros vazios nao restringem a pesquisa. As abas enviam seus status permitidos.
+    public List<Chamado> pesquisarChamados(String busca,
+                                          Collection<StatusChamado> status,
+                                          Collection<Prioridade> prioridades,
+                                          Collection<Long> categoriaIds) {
         String termo = busca == null ? "" : busca.trim();
         if (termo.length() > 150) {
             throw new IllegalArgumentException("A pesquisa deve ter no maximo 150 caracteres.");
@@ -65,14 +68,14 @@ public class ChamadoService {
                         cb.like(cb.lower(root.get("titulo")), padrao)
                 ));
             }
-            if (status != null) {
-                condicoes.add(cb.equal(root.get("status"), status));
+            if (status != null && !status.isEmpty()) {
+                condicoes.add(root.get("status").in(status));
             }
-            if (prioridade != null) {
-                condicoes.add(cb.equal(root.get("prioridadeOficial"), prioridade));
+            if (prioridades != null && !prioridades.isEmpty()) {
+                condicoes.add(root.get("prioridadeOficial").in(prioridades));
             }
-            if (categoriaId != null) {
-                condicoes.add(cb.equal(root.get("categoria").get("id"), categoriaId));
+            if (categoriaIds != null && !categoriaIds.isEmpty()) {
+                condicoes.add(root.get("categoria").get("id").in(categoriaIds));
             }
 
             return cb.and(condicoes.toArray(new Predicate[0]));

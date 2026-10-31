@@ -8,7 +8,7 @@
 <body>
     <h1>Gerenciar chamados</h1>
 
-    <nav>
+    <nav aria-label="Administração">
         <a th:href="@{/atendente/chamados}">Chamados</a> |
         <a th:href="@{/atendente/categorias}">Categorias</a> |
         <a th:href="@{/atendente/setores}">Setores</a> |
@@ -18,58 +18,151 @@
     <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
     <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
 
+    <!-- São links de navegação: cada aba recarrega esta mesma página com seu filtro fixo. -->
+    <nav aria-label="Etapas do gerenciamento de chamados">
+        <h2>Filas de atendimento</h2>
+        <a th:href="@{/atendente/chamados(aba='pre-aprovacao')}"
+           th:attr="aria-current=${aba == 'pre-aprovacao' ? 'page' : null}"
+           th:style="${aba == 'pre-aprovacao' ? 'font-weight: bold' : ''}">Pré-aprovação</a> |
+        <a th:href="@{/atendente/chamados(aba='em-aberto')}"
+           th:attr="aria-current=${aba == 'em-aberto' ? 'page' : null}"
+           th:style="${aba == 'em-aberto' ? 'font-weight: bold' : ''}">Em aberto</a> |
+        <a th:href="@{/atendente/chamados(aba='em-atendimento')}"
+           th:attr="aria-current=${aba == 'em-atendimento' ? 'page' : null}"
+           th:style="${aba == 'em-atendimento' ? 'font-weight: bold' : ''}">Em atendimento</a> |
+        <a th:href="@{/atendente/chamados(aba='aguardando-validacao')}"
+           th:attr="aria-current=${aba == 'aguardando-validacao' ? 'page' : null}"
+           th:style="${aba == 'aguardando-validacao' ? 'font-weight: bold' : ''}">Aguardando validação</a> |
+        <a th:href="@{/atendente/chamados(aba='todos')}"
+           th:attr="aria-current=${aba == 'todos' ? 'page' : null}"
+           th:style="${aba == 'todos' ? 'font-weight: bold' : ''}">Todos</a>
+    </nav>
+
+    <p th:if="${aba == 'pre-aprovacao'}">Solicitações enviadas para análise, incluindo as que receberam informações complementares.</p>
+    <p th:if="${aba == 'em-aberto'}">Solicitações aprovadas que aguardam a atribuição de um funcionário.</p>
+    <p th:if="${aba == 'em-atendimento'}">Chamados atribuídos, em execução ou pendentes de retomada.</p>
+    <p th:if="${aba == 'aguardando-validacao'}">Serviços concluídos pelo funcionário e aguardando aprovação do atendente.</p>
+    <p th:if="${aba == 'todos'}">Consulta geral: inclui chamados aguardando informações, duplicados e encerrados.</p>
+
+    <!-- Em todas as abas há busca e seleção múltipla de categorias. -->
     <section aria-labelledby="titulo-filtros">
-        <h2 id="titulo-filtros">Pesquisar e filtrar chamados</h2>
+        <h2 id="titulo-filtros">Pesquisar e filtrar</h2>
         <form th:action="@{/atendente/chamados}" method="get">
+            <input type="hidden" name="aba" th:value="${aba}">
+
             <div>
                 <label for="busca">Protocolo ou título</label>
                 <input type="search" id="busca" name="busca" maxlength="150"
                        placeholder="Ex.: 2026-000001 ou buraco" th:value="${busca}">
             </div>
 
-            <div>
-                <label for="status">Status</label>
-                <select id="status" name="status">
-                    <option value="">Todos os status</option>
-                    <option th:each="opcao : ${statusDisponiveis}"
-                            th:value="${opcao.name()}"
-                            th:text="${#strings.replace(opcao.name(), '_', ' ')}"
-                            th:selected="${opcao == statusSelecionado}">Status</option>
-                </select>
-            </div>
+            <details th:attr="open=${!#lists.isEmpty(categoriasSelecionadas) ? 'open' : null}">
+                <summary>Filtrar por categoria (pode selecionar várias)</summary>
+                <fieldset>
+                    <legend>Categorias</legend>
+                    <p>Sem categorias marcadas, todas serão consideradas.</p>
+                    <div th:each="categoria : ${categorias}">
+                        <label>
+                            <input type="checkbox" name="categoriaId" th:value="${categoria.id}"
+                                   th:checked="${#lists.contains(categoriasSelecionadas, categoria.id)}">
+                            <span th:text="${categoria.nome + ' — ' + categoria.setor.nome + (categoria.ativo ? '' : ' (inativa)')}">Categoria</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </details>
 
-            <div>
-                <label for="prioridade">Prioridade oficial</label>
-                <select id="prioridade" name="prioridade">
-                    <option value="">Todas as prioridades</option>
-                    <option th:each="opcao : ${prioridades}"
-                            th:value="${opcao.name()}"
-                            th:text="${opcao.name()}"
-                            th:selected="${opcao == prioridadeSelecionada}">Prioridade</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="categoriaId">Categoria</label>
-                <select id="categoriaId" name="categoriaId">
-                    <option value="">Todas as categorias</option>
-                    <option th:each="categoria : ${categorias}"
-                            th:value="${categoria.id}"
-                            th:text="${categoria.nome + ' — ' + categoria.setor.nome + (categoria.ativo ? '' : ' (inativa)')}"
-                            th:selected="${categoria.id == categoriaSelecionada}">Categoria</option>
-                </select>
+            <!-- Somente Todos recebe filtros extras; nas outras abas os status são fixos. -->
+            <div th:if="${aba == 'todos'}">
+                <details th:attr="open=${!#lists.isEmpty(statusSelecionados) ? 'open' : null}">
+                    <summary>Filtrar por status</summary>
+                    <fieldset>
+                        <legend>Status (múltipla escolha)</legend>
+                        <p>Sem status marcados, todos serão considerados.</p>
+                        <div th:each="opcao : ${statusDisponiveis}">
+                            <label>
+                                <input type="checkbox" name="status" th:value="${opcao.name()}"
+                                       th:checked="${#lists.contains(statusSelecionados, opcao)}">
+                                <span th:text="${#strings.replace(opcao.name(), '_', ' ')}">Status</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                </details>
+                <details th:attr="open=${!#lists.isEmpty(prioridadesSelecionadas) ? 'open' : null}">
+                    <summary>Filtrar por prioridade oficial</summary>
+                    <fieldset>
+                        <legend>Prioridades (múltipla escolha)</legend>
+                        <p>Sem prioridades marcadas, todas serão consideradas, incluindo as não definidas.</p>
+                        <div th:each="opcao : ${prioridades}">
+                            <label>
+                                <input type="checkbox" name="prioridade" th:value="${opcao.name()}"
+                                       th:checked="${#lists.contains(prioridadesSelecionadas, opcao)}">
+                                <span th:text="${opcao.name()}">Prioridade</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                </details>
             </div>
 
             <button type="submit">Pesquisar</button>
-            <a th:href="@{/atendente/chamados}">Limpar filtros</a>
+            <a th:href="@{/atendente/chamados(aba=${aba})}">Limpar filtros</a>
         </form>
     </section>
 
     <p th:text="|Chamados encontrados: ${#lists.size(chamados)}|"></p>
     <p th:if="${#lists.isEmpty(chamados)}"
-       th:text="${filtrosAplicados} ? 'Nenhum chamado corresponde aos filtros informados.' : 'Nenhum chamado registrado.'"></p>
+       th:text="${filtrosAplicados} ? 'Nenhum chamado corresponde aos filtros informados.' : 'Nenhum chamado nesta etapa.'"></p>
 
-    <table th:unless="${#lists.isEmpty(chamados)}">
+    <!-- Quatro grupos em ordem: CRÍTICA, ALTA, MÉDIA, BAIXA. Grupos vazios ficam ocultos. -->
+    <div th:if="${aba != 'todos'}">
+        <section th:each="grupo : ${gruposPrioridade}" th:if="${!#lists.isEmpty(grupo.value)}">
+            <h2 th:text="|${usarUrgencia ? 'Urgência percebida' : 'Prioridade oficial'}: ${grupo.key.name()} (${#lists.size(grupo.value)})|">Prioridade</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Protocolo</th>
+                        <th scope="col">Título</th>
+                        <th scope="col">Categoria</th>
+                        <th scope="col">Cidadão</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Responsável</th>
+                        <th scope="col">Criado em</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="chamado : ${grupo.value}">
+                        <td th:text="${chamado.protocolo}"></td>
+                        <td th:text="${chamado.titulo}"></td>
+                        <td th:text="${chamado.categoria.nome}"></td>
+                        <td th:text="${chamado.cidadao.nome}"></td>
+                        <td th:text="${#strings.replace(chamado.status.name(), '_', ' ')}"></td>
+                        <td th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}"></td>
+                        <td th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td><a th:href="@{/atendente/chamados/{id}(id=${chamado.id})}">Analisar</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Segurança visual: se houver registros antigos sem prioridade, eles não somem da lista. -->
+        <section th:if="${!#lists.isEmpty(semPrioridade)}">
+            <h2 th:text="|Sem prioridade definida (${#lists.size(semPrioridade)})|">Sem prioridade</h2>
+            <table>
+                <thead><tr><th>Protocolo</th><th>Título</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody>
+                    <tr th:each="chamado : ${semPrioridade}">
+                        <td th:text="${chamado.protocolo}"></td>
+                        <td th:text="${chamado.titulo}"></td>
+                        <td th:text="${chamado.status}"></td>
+                        <td><a th:href="@{/atendente/chamados/{id}(id=${chamado.id})}">Analisar</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Consulta geral: uma única tabela, incluindo os status não presentes nas filas operacionais. -->
+    <table th:if="${aba == 'todos' && !#lists.isEmpty(chamados)}">
         <thead>
             <tr>
                 <th scope="col">Protocolo</th>
@@ -77,7 +170,9 @@
                 <th scope="col">Categoria</th>
                 <th scope="col">Cidadão</th>
                 <th scope="col">Status</th>
+                <th scope="col">Urgência percebida</th>
                 <th scope="col">Prioridade oficial</th>
+                <th scope="col">Responsável</th>
                 <th scope="col">Criado em</th>
                 <th scope="col">Ações</th>
             </tr>
@@ -88,12 +183,12 @@
                 <td th:text="${chamado.titulo}"></td>
                 <td th:text="${chamado.categoria.nome}"></td>
                 <td th:text="${chamado.cidadao.nome}"></td>
-                <td th:text="${chamado.status}"></td>
+                <td th:text="${#strings.replace(chamado.status.name(), '_', ' ')}"></td>
+                <td th:text="${chamado.urgenciaPercebida}"></td>
                 <td th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial : 'Não definida'}"></td>
+                <td th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}"></td>
                 <td th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}"></td>
-                <td>
-                    <a th:href="@{/atendente/chamados/{id}(id=${chamado.id})}">Analisar</a>
-                </td>
+                <td><a th:href="@{/atendente/chamados/{id}(id=${chamado.id})}">Analisar</a></td>
             </tr>
         </tbody>
     </table>

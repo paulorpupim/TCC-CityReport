@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -130,26 +131,16 @@ public class ChamadoExecucaoController {
                 id, dados.justificativa(), autenticacao.getName()));
     }
 
-    // POST /api/chamados/{id}/observacoes (JSON: {"observacao":"..."})
-    @PostMapping("/{id}/observacoes")
-    public ChamadoResponseDTO registrarObservacao(
-            @PathVariable Long id,
-            @Valid @RequestBody ObservacaoRequestDTO dados,
-            Authentication autenticacao) {
-
-        return ChamadoResponseDTO.de(chamadoExecucaoService.registrarObservacao(
-                id, dados.observacao(), autenticacao.getName()));
-    }
-
-    // POST /api/chamados/{id}/finalizar (multipart/form-data: campo "foto")
+    // POST /api/chamados/{id}/finalizar (multipart/form-data: foto e observacao opcional)
     @PostMapping(value = "/{id}/finalizar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ChamadoResponseDTO finalizar(
             @PathVariable Long id,
             @RequestPart("foto") MultipartFile foto,
+            @RequestParam(value = "observacao", required = false) String observacao,
             Authentication autenticacao) {
 
         return ChamadoResponseDTO.de(chamadoExecucaoService.solicitarFinalizacao(
-                id, foto, autenticacao.getName()));
+                id, foto, observacao, autenticacao.getName()));
     }
 
     // Chamado inexistente: 404. Regra de negocio invalida: 400.
@@ -170,13 +161,6 @@ public class ChamadoExecucaoController {
         return ResponseEntity.status(status)
                 .body(Map.of("erro", erro.getMessage()));
     }
-
-    // DTO pequeno para observacoes de execucao, sem precisar de um novo arquivo.
-    public record ObservacaoRequestDTO(
-            @NotBlank(message = "A observacao e obrigatoria.")
-            @Size(max = 1700, message = "A observacao deve ter no maximo 1700 caracteres.")
-            String observacao
-    ) {}
 
     // DTO pequeno para receber a justificativa em JSON sem criar outro arquivo.
     public record ImpedimentoRequestDTO(
