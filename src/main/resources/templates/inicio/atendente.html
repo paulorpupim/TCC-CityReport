@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F172A">
+    <title>Início | Administração · CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+</head>
+<body class="home-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+    <header class="home-header">
+        <div class="home-header-inner">
+            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
+                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg"
+                     alt="" class="home-brand-icon" width="48" height="48">
+                <span class="home-brand-copy">
+                    <span class="home-brand-name">CITY<span>REPORT</span></span>
+                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
+                </span>
+            </a>
+            <nav class="home-nav" aria-label="Navegação administrativa">
+                <a class="home-nav-link is-current" th:href="@{/}" href="/" aria-current="page">Início</a>
+                <a class="home-nav-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
+                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
+                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
+            </nav>
+            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="home-logout-button" type="submit">Sair</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="home-container" id="conteudo">
+        <section class="home-admin-intro" aria-labelledby="titulo-admin">
+            <div>
+                <p class="home-panel-kicker">CITYREPORT · GESTÃO MUNICIPAL</p>
+                <h1 id="titulo-admin">Painel administrativo</h1>
+                <p>Olá, <strong th:text="${nomeUsuario}">Atendente</strong>! Acesse as filas de atendimento e os cadastros da prefeitura.</p>
+            </div>
+            <a class="home-button home-button-primary" th:href="@{/atendente/chamados(aba='pre-aprovacao')}" href="/atendente/chamados?aba=pre-aprovacao">Analisar chamados</a>
+        </section>
+
+        <section class="home-admin-section" aria-labelledby="titulo-filas">
+            <div class="home-admin-section-heading">
+                <div><p class="home-panel-kicker">ATENDIMENTO</p><h2 id="titulo-filas">Filas de chamados</h2></div>
+                <a class="home-text-link" th:href="@{/atendente/chamados(aba='todos')}" href="/atendente/chamados?aba=todos">Consultar todos <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="home-admin-grid">
+                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='pre-aprovacao')}" href="/atendente/chamados?aba=pre-aprovacao">
+                    <span class="home-admin-card-marker marker-blue" aria-hidden="true"></span>
+                    <span class="home-admin-card-title">Pré-aprovação</span>
+                    <span class="home-admin-card-text">Solicitações enviadas que aguardam a análise inicial.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='em-aberto')}" href="/atendente/chamados?aba=em-aberto">
+                    <span class="home-admin-card-marker marker-yellow" aria-hidden="true"></span>
+                    <span class="home-admin-card-title">Em aberto</span>
+                    <span class="home-admin-card-text">Chamados aceitos que aguardam atribuição de funcionário.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='em-atendimento')}" href="/atendente/chamados?aba=em-atendimento">
+                    <span class="home-admin-card-marker marker-orange" aria-hidden="true"></span>
+                    <span class="home-admin-card-title">Em atendimento</span>
+                    <span class="home-admin-card-text">Serviços atribuídos, em execução ou pendentes.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='aguardando-validacao')}" href="/atendente/chamados?aba=aguardando-validacao">
+                    <span class="home-admin-card-marker marker-green" aria-hidden="true"></span>
+                    <span class="home-admin-card-title">Aguardando validação</span>
+                    <span class="home-admin-card-text">Conclusões enviadas por funcionários para conferência.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="home-admin-section" aria-labelledby="titulo-cadastros">
+            <div class="home-admin-section-heading">
+                <div><p class="home-panel-kicker">ADMINISTRAÇÃO</p><h2 id="titulo-cadastros">Cadastros da prefeitura</h2></div>
+            </div>
+            <div class="home-admin-grid home-admin-grid-small">
+                <a class="home-admin-card home-admin-card-small" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">
+                    <span class="home-admin-card-title">Usuários e funcionários</span>
+                    <span class="home-admin-card-text">Consulte e gerencie as contas cadastradas.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+                <a class="home-admin-card home-admin-card-small" th:href="@{/atendente/categorias}" href="/atendente/categorias">
+                    <span class="home-admin-card-title">Categorias</span>
+                    <span class="home-admin-card-text">Organize os tipos de problema e seus setores.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+                <a class="home-admin-card home-admin-card-small" th:href="@{/atendente/setores}" href="/atendente/setores">
+                    <span class="home-admin-card-title">Setores</span>
+                    <span class="home-admin-card-text">Gerencie os setores responsáveis pelo atendimento.</span>
+                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
+</body>
+</html>

@@ -3,37 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${titulo}">Formulário de categoria</title>
+    <meta name="theme-color" content="#0F172A">
+    <title>Cadastro de categoria | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/cadastros-administracao.css}" href="/css/cadastros-administracao.css">
 </head>
-<body>
-    <h1 th:text="${titulo}">Formulário de categoria</h1>
-
-    <p><a th:href="@{/atendente/categorias}">Voltar para categorias</a></p>
-
-    <form th:action="${acao}" th:object="${categoria}" method="post">
-
-        <div th:if="${#fields.hasGlobalErrors()}">
-            <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+<body class="home-page admin-crud-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header class="home-header">
+        <div class="home-header-inner">
+            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
+                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt="" class="home-brand-icon" width="48" height="48">
+                <span class="home-brand-copy">
+                    <span class="home-brand-name">CITY<span>REPORT</span></span>
+                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
+                </span>
+            </a>
+            <nav class="home-nav" aria-label="Navegação administrativa">
+                <a class="home-nav-link" th:href="@{/}" href="/">Início</a>
+                <a class="home-nav-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
+                <a class="home-nav-link is-current" th:href="@{/atendente/categorias}" href="/atendente/categorias" aria-current="page">Categorias</a>
+                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
+            </nav>
+            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="home-logout-button" type="submit">Sair</button>
+            </form>
         </div>
-
-        <p>
-            <label for="nome">Nome da categoria:</label>
-            <input type="text" id="nome" th:field="*{nome}" maxlength="100" required>
-            <span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
-        </p>
-
-        <p>
-            <label for="setor">Setor responsável:</label>
-            <select id="setor" th:field="*{setor.id}" required>
-                <option value="">Selecione um setor</option>
-                <option th:each="setor : ${setores}"
-                        th:value="${setor.id}"
-                        th:text="${setor.nome}"></option>
-            </select>
-            <span th:if="${#fields.hasErrors('setor')}" th:errors="*{setor}"></span>
-        </p>
-
-        <button type="submit">Salvar</button>
-    </form>
+    </header>
+    <main class="admin-crud-container" id="conteudo">
+        <div class="admin-crud-breadcrumb"><a th:href="@{/atendente/categorias}" href="/atendente/categorias">← Voltar para a listagem</a></div>
+        <section class="admin-crud-form-heading" aria-labelledby="titulo-pagina">
+            <p class="admin-crud-eyebrow">CADASTROS · CATEGORIAS</p>
+            <h1 id="titulo-pagina" th:text="${titulo}">Cadastrar categoria</h1>
+            <p>Defina um tipo de ocorrência e indique o setor responsável.</p>
+        </section>
+        <div class="admin-crud-form-layout">
+            <section class="admin-crud-panel admin-crud-form-panel" aria-label="Formulário de cadastro">
+                <form class="admin-crud-form" th:action="${acao}" th:object="${categoria}" method="post">
+                    <div class="admin-crud-validation" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                        <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Revise os dados.</p>
+                    </div>
+                    <div class="admin-crud-field">
+                        <label for="nome">Nome da categoria <span aria-hidden="true">*</span></label>
+                        <input type="text" id="nome" th:field="*{nome}" maxlength="100" required placeholder="Ex.: Pavimentação e vias" th:attr="aria-invalid=${#fields.hasErrors('nome')}">
+                        <p class="admin-crud-field-help">Nome exibido para o cidadão ao registrar uma ocorrência.</p>
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Nome inválido.</p>
+                    </div>
+                    <div class="admin-crud-field">
+                        <label for="setor">Setor responsável <span aria-hidden="true">*</span></label>
+                        <select id="setor" th:field="*{setor.id}" required th:attr="aria-invalid=${#fields.hasErrors('setor')}">
+                            <option value="">Selecione um setor</option>
+                            <option th:each="setor : ${setores}" th:value="${setor.id}" th:text="${setor.nome}">Obras</option>
+                        </select>
+                        <p class="admin-crud-field-help">Somente setores ativos aparecem como opções de vínculo.</p>
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('setor')}" th:errors="*{setor}">Selecione um setor.</p>
+                    </div>
+                    <div class="admin-crud-form-actions">
+                        <button class="admin-crud-button admin-crud-button-primary" type="submit">Salvar categoria</button>
+                        <a class="admin-crud-button admin-crud-button-outline" th:href="@{/atendente/categorias}">Cancelar</a>
+                    </div>
+                </form>
+            </section>
+            <aside class="admin-crud-side-note" aria-label="Orientações">
+                <span class="admin-crud-side-icon" aria-hidden="true">i</span>
+                <h2>Sobre as categorias</h2>
+                <p>A categoria ajuda a classificar um chamado e selecionar funcionários compatíveis com o setor. O sistema protege vínculos existentes durante alterações.</p>
+                <div class="admin-crud-note-separator"></div>
+                <p>Os registros e as permissões continuam sendo validados pelo sistema.</p>
+            </aside>
+        </div>
+    </main>
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
 </body>
 </html>

@@ -3,64 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${titulo}">Cadastro ou edição de usuário - CityReport</title>
+    <meta name="theme-color" content="#0F172A">
+    <title>Cadastro de usuário | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/cadastros-administracao.css}" href="/css/cadastros-administracao.css">
 </head>
-<body>
-    <h1 th:text="${titulo}">Cadastro ou edição de usuário</h1>
-
-    <p><a th:href="@{/atendente/usuarios}">Voltar para usuários</a></p>
-
-    <form th:action="${acao}" th:object="${usuarioDTO}" method="post">
-        <div th:if="${#fields.hasGlobalErrors()}">
-            <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+<body class="home-page admin-crud-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header class="home-header">
+        <div class="home-header-inner">
+            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
+                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt="" class="home-brand-icon" width="48" height="48">
+                <span class="home-brand-copy">
+                    <span class="home-brand-name">CITY<span>REPORT</span></span>
+                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
+                </span>
+            </a>
+            <nav class="home-nav" aria-label="Navegação administrativa">
+                <a class="home-nav-link" th:href="@{/}" href="/">Início</a>
+                <a class="home-nav-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+                <a class="home-nav-link is-current" th:href="@{/atendente/usuarios}" href="/atendente/usuarios" aria-current="page">Usuários</a>
+                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
+                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
+            </nav>
+            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="home-logout-button" type="submit">Sair</button>
+            </form>
         </div>
-
-        <p>
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" th:field="*{nome}" maxlength="100" autocomplete="name" required>
-            <span th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
-        </p>
-
-        <p>
-            <label for="email">E-mail:</label>
-            <input type="email" id="email" th:field="*{email}" maxlength="150" autocomplete="email" required>
-            <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
-        </p>
-
-        <p th:if="${!#strings.endsWith(acao, '/editar')}">
-            <label for="perfil">Perfil:</label>
-            <select id="perfil" th:field="*{perfil}" required>
-                <option value="">Selecione um perfil</option>
-                <option value="ATENDENTE">Atendente</option>
-                <option value="FUNCIONARIO">Funcionário de campo</option>
-            </select>
-            <span th:if="${#fields.hasErrors('perfil')}" th:errors="*{perfil}"></span>
-        </p>
-
-        <p th:if="${#strings.endsWith(acao, '/editar')}">
-            <strong>Perfil:</strong>
-            <span th:text="${usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'ATENDENTE' ? 'Atendente' : 'Funcionário de campo'}"></span>
-        </p>
-
-        <p th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}">
-            <label for="setorId">Setor (obrigatório para funcionário):</label>
-            <select id="setorId" th:field="*{setorId}">
-                <option value="">Selecione um setor</option>
-                <option th:each="setor : ${setores}"
-                        th:value="${setor.id}"
-                        th:text="${setor.nome}"></option>
-            </select>
-            <span th:if="${#fields.hasErrors('setorId')}" th:errors="*{setorId}"></span>
-        </p>
-
-        <p th:if="${!#strings.endsWith(acao, '/editar')}">
-            <label for="senha">Senha:</label>
-            <input type="password" id="senha" th:field="*{senha}"
-                   minlength="8" autocomplete="new-password" required>
-            <span th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></span>
-        </p>
-
-        <button type="submit">Salvar</button>
-    </form>
+    </header>
+    <main class="admin-crud-container" id="conteudo">
+        <div class="admin-crud-breadcrumb"><a th:href="@{/atendente/usuarios}" href="/atendente/usuarios">← Voltar para a listagem</a></div>
+        <section class="admin-crud-form-heading" aria-labelledby="titulo-pagina">
+            <p class="admin-crud-eyebrow">CADASTROS · USUÁRIOS</p>
+            <h1 id="titulo-pagina" th:text="${titulo}">Cadastrar usuário</h1>
+            <p>Cadastre um atendente ou funcionário de campo, ou atualize seus dados.</p>
+        </section>
+        <div class="admin-crud-form-layout">
+            <section class="admin-crud-panel admin-crud-form-panel" aria-label="Formulário de cadastro">
+                <form class="admin-crud-form" th:action="${acao}" th:object="${usuarioDTO}" method="post">
+                    <div class="admin-crud-validation" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                        <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Revise os dados.</p>
+                    </div>
+                    <div class="admin-crud-field">
+                        <label for="nome">Nome completo <span aria-hidden="true">*</span></label>
+                        <input type="text" id="nome" th:field="*{nome}" maxlength="100" autocomplete="name" required placeholder="Nome do usuário" th:attr="aria-invalid=${#fields.hasErrors('nome')}">
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Nome inválido.</p>
+                    </div>
+                    <div class="admin-crud-field">
+                        <label for="email">E-mail <span aria-hidden="true">*</span></label>
+                        <input type="email" id="email" th:field="*{email}" maxlength="150" autocomplete="email" required placeholder="usuario@exemplo.com" th:attr="aria-invalid=${#fields.hasErrors('email')}">
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">E-mail inválido.</p>
+                    </div>
+                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar')}">
+                        <label for="perfil">Perfil de acesso <span aria-hidden="true">*</span></label>
+                        <select id="perfil" th:field="*{perfil}" required th:attr="aria-invalid=${#fields.hasErrors('perfil')}">
+                            <option value="">Selecione um perfil</option>
+                            <option value="ATENDENTE">Atendente</option>
+                            <option value="FUNCIONARIO">Funcionário de campo</option>
+                        </select>
+                        <p class="admin-crud-field-help">O perfil determina as funcionalidades disponíveis.</p>
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('perfil')}" th:errors="*{perfil}">Perfil inválido.</p>
+                    </div>
+                    <div class="admin-crud-readonly" th:if="${#strings.endsWith(acao, '/editar')}">
+                        <span class="admin-crud-readonly-label">Perfil de acesso</span>
+                        <strong th:text="${usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'ATENDENTE' ? 'Atendente' : 'Funcionário de campo'}">Funcionário de campo</strong>
+                        <p>O perfil não pode ser alterado nesta tela.</p>
+                    </div>
+                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}">
+                        <label for="setorId">Setor <span class="admin-crud-label-note">obrigatório para funcionário</span></label>
+                        <select id="setorId" th:field="*{setorId}" th:attr="aria-invalid=${#fields.hasErrors('setorId')}">
+                            <option value="">Selecione um setor</option>
+                            <option th:each="setor : ${setores}" th:value="${setor.id}" th:text="${setor.nome}">Obras</option>
+                        </select>
+                        <p class="admin-crud-field-help">Funcionários só podem receber chamados do setor correspondente.</p>
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('setorId')}" th:errors="*{setorId}">Setor inválido.</p>
+                    </div>
+                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar')}">
+                        <label for="senha">Senha inicial <span aria-hidden="true">*</span></label>
+                        <input type="password" id="senha" th:field="*{senha}" minlength="8" autocomplete="new-password" required placeholder="Pelo menos 8 caracteres" th:attr="aria-invalid=${#fields.hasErrors('senha')}">
+                        <p class="admin-crud-field-help">Defina a senha inicial para a nova conta.</p>
+                        <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}">Senha inválida.</p>
+                    </div>
+                    <div class="admin-crud-form-actions">
+                        <button class="admin-crud-button admin-crud-button-primary" type="submit">Salvar usuário</button>
+                        <a class="admin-crud-button admin-crud-button-outline" th:href="@{/atendente/usuarios}">Cancelar</a>
+                    </div>
+                </form>
+            </section>
+            <aside class="admin-crud-side-note" aria-label="Orientações">
+                <span class="admin-crud-side-icon" aria-hidden="true">i</span>
+                <h2>Sobre os perfis</h2>
+                <p>Atendentes gerenciam cadastros e chamados. Funcionários de campo executam as atividades pelo aplicativo. Cada funcionário deve estar vinculado a um setor.</p>
+                <div class="admin-crud-note-separator"></div>
+                <p>Os registros e as permissões continuam sendo validados pelo sistema.</p>
+            </aside>
+        </div>
+    </main>
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
 </body>
 </html>

@@ -1,0 +1,108 @@
+/* CityReport — Perfil do cidadão.
+   Complementa global.css e inicio.css, sem alterar formulários ou regras de negócio. */
+
+.profile-page .profile-container { padding-top: 1.5rem; padding-bottom: 3.8rem; }
+.profile-page .profile-breadcrumb { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; font-size: .81rem; color: #64748b; }
+.profile-page .profile-breadcrumb a { color: #355573; text-decoration: none; font-weight: 700; }
+.profile-page .profile-breadcrumb a:hover { color: #146daa; text-decoration: underline; }
+
+.profile-page .profile-hero {
+    position: relative; isolation: isolate; overflow: hidden; display: flex;
+    align-items: center; justify-content: space-between; gap: 1.5rem;
+    min-height: 206px; padding: clamp(1.6rem, 4vw, 2.75rem);
+    margin: 0 0 1.4rem; border: 1px solid #334760; border-radius: 1.2rem;
+    background: linear-gradient(115deg, #101827 0%, #192231 54%, #2a405e 100%);
+    color: #fff; box-shadow: 0 15px 32px rgba(15, 23, 42, .10);
+}
+.profile-page .profile-hero-copy { position: relative; z-index: 1; max-width: 720px; }
+.profile-page .profile-eyebrow { display: inline-block; margin-bottom: .85rem; padding: .3rem .7rem;
+    border: 1px solid #3784b8; border-radius: 999px; background: #173854; color: #a8defe;
+    font-size: .68rem; font-weight: 800; letter-spacing: .07em; }
+.profile-page .profile-hero h1 { margin: 0 0 .5rem; color: #fff; font-size: clamp(1.8rem, 4vw, 2.65rem); font-weight: 800; letter-spacing: -.045em; }
+.profile-page .profile-hero p { margin: 0; max-width: 570px; color: #e1ebf7; font-size: .93rem; line-height: 1.7; }
+.profile-page .profile-hero-symbol { position: relative; z-index: 1; display: grid; place-items: center;
+    width: 92px; height: 92px; flex-shrink: 0; border: 1px solid #5d85a6; border-radius: 26px;
+    background: rgba(43, 157, 244, .13); color: #8fcfff; }
+.profile-page .profile-hero-symbol svg { width: 52px; height: 52px; }
+.profile-page .profile-hero-art { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
+.profile-page .profile-hero-art span { position: absolute; display: block; width: 360px; height: 360px;
+    border: 1px solid rgba(43,157,244,.16); border-radius: 50%; top: -245px; right: -60px; }
+.profile-page .profile-hero-art span + span { width: 480px; height: 480px; top: -315px; right: -120px;
+    background: rgba(43,157,244,.045); }
+
+.profile-page .profile-messages { display: grid; gap: .8rem; margin-bottom: 1.2rem; }
+.profile-page .profile-messages:empty { display: none; }
+.profile-page .profile-alert { display: flex; align-items: flex-start; gap: .75rem; padding: .9rem 1rem;
+    border: 1px solid; border-radius: .75rem; font-size: .86rem; line-height: 1.55; }
+.profile-page .profile-alert > svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+.profile-page .profile-alert p { margin: 0; }
+.profile-page .profile-alert-success { background: #eaf9f2; border-color: #8ad9b4; color: #115a41; }
+.profile-page .profile-alert-error { background: #fff1f1; border-color: #e6a6a6; color: #9f1717; }
+
+.profile-page .profile-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(290px, 1fr); gap: 1.25rem; align-items: start; }
+.profile-page .profile-side { min-width: 0; display: grid; gap: 1.25rem; }
+.profile-page .profile-card { min-width: 0; margin: 0; padding: clamp(1.25rem, 2.5vw, 2rem);
+    border: 1px solid #d9e3ef; border-radius: 1rem; background: #fff;
+    box-shadow: 0 5px 18px rgba(15, 23, 42, .04); }
+.profile-page .profile-card-heading { display: flex; gap: .85rem; align-items: flex-start;
+    padding-bottom: 1.4rem; margin-bottom: 1.4rem; border-bottom: 1px solid #e8edf5; }
+.profile-page .profile-card-heading > div:last-child { min-width: 0; }
+.profile-page .profile-card-icon { display: grid; place-items: center; width: 43px; height: 43px; flex-shrink: 0;
+    background: #e9f6ff; color: #1669a8; border: 1px solid #d1e9f8; border-radius: .72rem; }
+.profile-page .profile-card-icon svg { width: 22px; height: 22px; }
+.profile-page .profile-kicker { display: block; margin-bottom: .2rem; color: #3573a3; font-size: .67rem;
+    font-weight: 800; letter-spacing: .075em; }
+.profile-page .profile-card-heading h2 { margin: 0; color: #152337; font-size: clamp(1.12rem, 1.8vw, 1.32rem); letter-spacing: -.025em; }
+.profile-page .profile-card-heading p { margin: .42rem 0 0; color: #63748b; font-size: .84rem; line-height: 1.55; }
+
+.profile-page .profile-form { margin: 0; }
+.profile-page .profile-field { margin-bottom: 1.25rem; }
+.profile-page .profile-field label { display: block; margin-bottom: .44rem; font-size: .82rem; font-weight: 750; color: #293b52; }
+.profile-page .profile-field input:not([type="hidden"]) { width: 100%; min-height: 49px; margin: 0; padding: .76rem .9rem;
+    background: #fbfdff; border: 1px solid #c9d5e4; border-radius: .67rem; color: #102137; font-size: .9rem; }
+.profile-page .profile-field input:not([type="hidden"]):focus { border-color: #247bb5; background: #fff; }
+.profile-page .profile-field input.profile-input-error { border-color: #cc0000; background: #fff9f9; }
+.profile-page .profile-field-error { color: #a31515; margin: .42rem 0 0; font-size: .78rem; }
+.profile-page .profile-help { margin: .45rem 0 0; color: #64748b; font-size: .75rem; }
+.profile-page .profile-info { display: flex; align-items: flex-start; gap: .65rem; margin: .5rem 0 1.3rem;
+    padding: .9rem 1rem; border: 1px solid #b7ddf5; background: #f0f9ff; border-radius: .75rem; }
+.profile-page .profile-info svg { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; color: #1c6b9e; }
+.profile-page .profile-info p { margin: 0; color: #2b536f; font-size: .79rem; line-height: 1.6; }
+.profile-page .profile-form-actions { border-top: 1px solid #e8edf5; padding-top: 1.25rem; margin-top: .6rem; }
+.profile-page .profile-button { display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
+    min-height: 45px; width: auto; margin: 0; padding: .7rem 1.25rem; border-radius: .68rem;
+    font-size: .87rem; font-weight: 800; line-height: 1.3; text-decoration: none; cursor: pointer;
+    transition: background-color .17s ease, box-shadow .17s ease, border-color .17s ease; }
+.profile-page .profile-button svg { width: 18px; height: 18px; }
+.profile-page .profile-button-primary { background: #2b9df4; border: 1px solid #2b9df4; color: #0f172a;
+    box-shadow: 0 5px 12px rgba(43, 157, 244, .12); }
+.profile-page .profile-button-primary:hover { background: #69baff; border-color: #69baff; color: #0f172a; }
+.profile-page .profile-button-secondary { width: 100%; background: #192231; border: 1px solid #192231; color: #fff; }
+.profile-page .profile-button-secondary:hover { background: #30425d; border-color: #30425d; color: #fff; }
+
+.profile-page .profile-help-card { margin: 0; padding: 1.4rem; border-radius: .95rem; border: 1px solid #d3e7f4; background: #eef7ff; }
+.profile-page .profile-help-top { display: flex; align-items: center; gap: .65rem; margin-bottom: .7rem; }
+.profile-page .profile-help-top svg { width: 22px; height: 22px; flex-shrink: 0; color: #176fa8; }
+.profile-page .profile-help-card h2 { margin: 0; font-size: 1rem; color: #133856; }
+.profile-page .profile-help-card p { margin: 0 0 .8rem; color: #385a75; font-size: .81rem; line-height: 1.65; }
+.profile-page .profile-help-card a { color: #125c8b; font-size: .82rem; font-weight: 800; text-decoration: none; }
+.profile-page .profile-help-card a:hover { text-decoration: underline; }
+
+@media (max-width: 840px) {
+    .profile-page .profile-grid { grid-template-columns: minmax(0, 1fr); }
+    .profile-page .profile-hero-symbol { width: 72px; height: 72px; border-radius: 20px; }
+    .profile-page .profile-hero-symbol svg { width: 41px; height: 41px; }
+}
+@media (max-width: 560px) {
+    .profile-page .profile-container { padding-top: 1rem; padding-bottom: 2rem; }
+    .profile-page .profile-hero { padding: 1.65rem 1.3rem; min-height: 0; border-radius: 1rem; }
+    .profile-page .profile-hero-symbol { display: none; }
+    .profile-page .profile-hero h1 { font-size: 1.85rem; }
+    .profile-page .profile-hero p { font-size: .85rem; }
+    .profile-page .profile-card { padding: 1.1rem; }
+    .profile-page .profile-card-heading { gap: .7rem; }
+    .profile-page .profile-button-primary { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .profile-page .profile-button { transition: none; }
+}

@@ -3,308 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisar chamado - CityReport</title>
-    <!-- Leaflet: estilos essenciais para exibir o mapa. -->
+    <meta name="theme-color" content="#0F172A">
+    <title th:text="'Chamado ' + ${chamado.protocolo} + ' | CityReport'">Analisar chamado | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/chamado-detalhes-administracao.css}" href="/css/chamado-detalhes-administracao.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
-<body>
-    <h1 th:text="|Analisar chamado ${chamado.protocolo}|"></h1>
+<body class="home-page admin-detail-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
-    <nav>
-        <a th:href="@{/atendente/chamados(aba='todos')}">Todos os chamados</a> |
-        <a th:href="@{/atendente/categorias}">Categorias</a> |
-        <a th:href="@{/atendente/usuarios}">Usuários</a>
-    </nav>
+    <header class="home-header">
+        <div class="home-header-inner">
+            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
+                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt=""
+                     class="home-brand-icon" width="48" height="48">
+                <span class="home-brand-copy">
+                    <span class="home-brand-name">CITY<span>REPORT</span></span>
+                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
+                </span>
+            </a>
+            <nav class="home-nav" aria-label="Navegação administrativa">
+                <a class="home-nav-link" th:href="@{/}" href="/">Início</a>
+                <a class="home-nav-link is-current" aria-current="page" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
+                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
+                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
+            </nav>
+            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="home-logout-button">Sair</button>
+            </form>
+        </div>
+    </header>
 
-    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
-    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
+    <main id="conteudo" class="home-container admin-detail-main">
+        <nav class="admin-detail-breadcrumb" aria-label="Caminho de navegação">
+            <a th:href="@{/}" href="/">Início</a>
+            <span aria-hidden="true">/</span>
+            <a th:href="@{/atendente/chamados(aba='todos')}" href="/atendente/chamados?aba=todos">Gerenciar chamados</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page" th:text="${chamado.protocolo}">2026-000001</span>
+        </nav>
 
-    <h2>Dados do chamado</h2>
-    <dl>
-        <dt>Título</dt>
-        <dd th:text="${chamado.titulo}"></dd>
-        <dt>Descrição</dt>
-        <dd th:text="${chamado.descricao}"></dd>
-        <dt>Cidadão</dt>
-        <dd th:text="${chamado.cidadao.nome}"></dd>
-        <dt>Categoria atual</dt>
-        <dd th:text="${chamado.categoria.nome}"></dd>
-        <dt>Setor responsável</dt>
-        <dd th:text="${chamado.categoria.setor.nome}"></dd>
-        <dt>Urgência percebida</dt>
-        <dd th:text="${chamado.urgenciaPercebida}"></dd>
-        <dt>Prioridade oficial</dt>
-        <dd th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial : 'Não definida'}"></dd>
-        <dt>Status</dt>
-        <dd th:text="${chamado.status}"></dd>
-        <dt>Endereço</dt>
-        <dd th:text="${chamado.endereco != null ? chamado.endereco : 'Não informado'}"></dd>
-        <dt>Latitude</dt>
-        <dd th:text="${chamado.latitude != null ? chamado.latitude : 'Não informada'}"></dd>
-        <dt>Longitude</dt>
-        <dd th:text="${chamado.longitude != null ? chamado.longitude : 'Não informada'}"></dd>
-        <dt>Funcionário responsável</dt>
-        <dd th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}"></dd>
-        <dt>Data de criação</dt>
-        <dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}"></dd>
-        <dt>Primeiro início de execução</dt>
-        <dd th:text="${chamado.primeiroInicioExecucao != null ? #temporals.format(chamado.primeiroInicioExecucao, 'dd/MM/yyyy HH:mm') : 'Ainda não iniciada'}"></dd>
-        <dt>Conclusão</dt>
-        <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Não concluído'}"></dd>
-    </dl>
+        <header class="admin-detail-hero">
+            <div class="admin-detail-hero-copy">
+                <p class="admin-detail-kicker">CENTRAL DE ATENDIMENTO · ANÁLISE DE SOLICITAÇÃO</p>
+                <div class="admin-detail-protocol" th:text="'PROTOCOLO ' + ${chamado.protocolo}">PROTOCOLO 2026-000001</div>
+                <h1 th:text="${chamado.titulo}">Buraco na Rua das Flores</h1>
+                <p>Analise as informações, confira as evidências e realize as ações disponíveis para esta etapa.</p>
+                <div class="admin-detail-hero-tags">
+                    <span class="admin-detail-status" th:classappend="${' admin-detail-status--' + #strings.toLowerCase(chamado.status.name())}"
+                          th:text="${#strings.replace(chamado.status.name(), '_', ' ')}">ENVIADO</span>
+                    <span class="admin-detail-hero-category" th:text="${chamado.categoria.nome}">Categoria do problema</span>
+                </div>
+            </div>
+            <a class="admin-detail-back" th:href="@{/atendente/chamados(aba='todos')}" href="/atendente/chamados?aba=todos">
+                <span aria-hidden="true">←</span> Todos os chamados
+            </a>
+        </header>
 
-    <!-- Apenas leitura: a posicao exibida e a que ja esta gravada no chamado. -->
-    <section>
-        <h2>Localização no mapa</h2>
-        <div th:if="${chamado.latitude != null and chamado.longitude != null}"
-             id="mapa-localizacao"
-             th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
-             role="region" aria-label="Mapa com o local do chamado"
-             style="width: 100%; max-width: 850px; height: 350px;"></div>
-        <p th:if="${chamado.latitude == null or chamado.longitude == null}">
-            Este chamado não possui coordenadas para exibir no mapa.
-            Consulte o endereço informado acima.
-        </p>
-    </section>
+        <p class="alert alert-success admin-detail-alert" role="status" th:if="${mensagemSucesso}" th:text="${mensagemSucesso}">Operação concluída.</p>
+        <p class="alert alert-danger admin-detail-alert" role="alert" th:if="${mensagemErro}" th:text="${mensagemErro}">Não foi possível concluir a operação.</p>
 
+        <div class="admin-detail-duplicate" th:if="${chamado.status.name() == 'DUPLICADO' and chamado.chamadoOriginal != null}">
+            <strong>Chamado vinculado como duplicado</strong>
+            <span>O registro original possui o protocolo
+                <a th:href="@{/atendente/chamados/{id}(id=${chamado.chamadoOriginal.id})}"
+                   th:text="${chamado.chamadoOriginal.protocolo}">2026-000001</a>.
+            </span>
+        </div>
 
-    <p th:if="${chamado.status.name() == 'DUPLICADO' and chamado.chamadoOriginal != null}">
-        Este chamado é duplicado do protocolo
-        <a th:href="@{/atendente/chamados/{id}(id=${chamado.chamadoOriginal.id})}"
-           th:text="${chamado.chamadoOriginal.protocolo}"></a>.
-    </p>
+        <div class="admin-detail-layout">
+            <!-- Área de consulta: todas as informações continuam disponíveis ao atendente. -->
+            <div class="admin-detail-content">
+                <section class="admin-detail-card" aria-labelledby="titulo-informacoes">
+                    <div class="admin-detail-card-heading">
+                        <div>
+                            <p class="admin-detail-eyebrow">REGISTRO DA OCORRÊNCIA</p>
+                            <h2 id="titulo-informacoes">Informações do chamado</h2>
+                        </div>
+                    </div>
+                    <div class="admin-detail-description">
+                        <h3>Descrição do problema</h3>
+                        <p th:text="${chamado.descricao}">Descrição enviada pelo cidadão.</p>
+                    </div>
+                    <dl class="admin-detail-meta">
+                        <div><dt>Cidadão</dt><dd th:text="${chamado.cidadao.nome}">Nome</dd></div>
+                        <div><dt>Categoria</dt><dd th:text="${chamado.categoria.nome}">Categoria</dd></div>
+                        <div><dt>Setor responsável</dt><dd th:text="${chamado.categoria.setor.nome}">Setor</dd></div>
+                        <div><dt>Funcionário responsável</dt><dd th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}">Não atribuído</dd></div>
+                        <div><dt>Urgência percebida</dt><dd><span class="admin-detail-priority" th:classappend="${' admin-detail-priority--' + #strings.toLowerCase(chamado.urgenciaPercebida.name())}" th:text="${chamado.urgenciaPercebida}">ALTA</span></dd></div>
+                        <div><dt>Prioridade oficial</dt><dd><span class="admin-detail-priority" th:if="${chamado.prioridadeOficial != null}" th:classappend="${' admin-detail-priority--' + #strings.toLowerCase(chamado.prioridadeOficial.name())}" th:text="${chamado.prioridadeOficial}">ALTA</span><span th:if="${chamado.prioridadeOficial == null}">Não definida</span></dd></div>
+                        <div><dt>Data de criação</dt><dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026</dd></div>
+                        <div><dt>Primeiro início da execução</dt><dd th:text="${chamado.primeiroInicioExecucao != null ? #temporals.format(chamado.primeiroInicioExecucao, 'dd/MM/yyyy HH:mm') : 'Ainda não iniciada'}">Ainda não iniciada</dd></div>
+                        <div><dt>Data de conclusão</dt><dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Não concluído'}">Não concluído</dd></div>
+                    </dl>
+                </section>
 
-    <!-- Ultimo registro de cada assunto; o historico completo continua abaixo. -->
-    <section th:if="${!#lists.isEmpty(atualizacoes)}" aria-labelledby="titulo-atualizacoes">
-        <h2 id="titulo-atualizacoes">Atualizações do chamado</h2>
-        <p>Informações mais recentes de cada assunto. Para ver todas as movimentações, consulte o histórico.</p>
-        <article th:each="atualizacao : ${atualizacoes}"
-                 style="border: 1px solid #cccccc; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-            <h3 th:text="${atualizacao.titulo}"></h3>
-            <p th:text="${atualizacao.texto}" style="white-space: pre-wrap;"></p>
-            <small th:if="${atualizacao.dataHora != null}"
-                   th:text="${#temporals.format(atualizacao.dataHora, 'dd/MM/yyyy HH:mm')}"></small>
-        </article>
-    </section>
+                <section class="admin-detail-card" aria-labelledby="titulo-localizacao">
+                    <div class="admin-detail-card-heading">
+                        <div><p class="admin-detail-eyebrow">LOCALIZAÇÃO</p><h2 id="titulo-localizacao">Onde está o problema?</h2></div>
+                    </div>
+                    <div class="admin-detail-address">
+                        <span>Endereço informado</span>
+                        <strong th:text="${chamado.endereco != null and !#strings.isEmpty(chamado.endereco) ? chamado.endereco : 'Não informado'}">Rua informada no cadastro</strong>
+                    </div>
+                    <div th:if="${chamado.latitude != null and chamado.longitude != null}"
+                         id="mapa-localizacao" class="admin-detail-map"
+                         th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
+                         role="region" aria-label="Mapa com a localização informada no chamado"></div>
+                    <p class="admin-detail-help" th:if="${chamado.latitude == null or chamado.longitude == null}">
+                        Este chamado não possui coordenadas no mapa. Consulte o endereço informado acima.
+                    </p>
+                    <p class="admin-detail-coordinates" th:if="${chamado.latitude != null and chamado.longitude != null}">
+                        Coordenadas: <span th:text="${chamado.latitude}">-20.286</span>, <span th:text="${chamado.longitude}">-50.396</span>
+                    </p>
+                </section>
 
-    <!-- Acoes de triagem: disponiveis somente enquanto o chamado estiver ENVIADO. -->
-    <section th:if="${chamado.status.name() == 'ENVIADO'}">
-        <h2>Aprovar triagem</h2>
-        <form th:action="@{/atendente/chamados/{id}/aprovar-triagem(id=${chamado.id})}" method="post">
-            <p>
-                <label for="categoriaId">Categoria definitiva:</label>
-                <select id="categoriaId" name="categoriaId" required>
-                    <option value="">Selecione uma categoria</option>
-                    <option th:each="categoria : ${categorias}"
-                            th:value="${categoria.id}"
-                            th:text="${categoria.nome + ' - ' + categoria.setor.nome}"
-                            th:selected="${categoria.id == chamado.categoria.id}"></option>
-                </select>
-            </p>
-            <p>
-                <label for="prioridadeTriagem">Prioridade oficial:</label>
-                <select id="prioridadeTriagem" name="prioridadeOficial" required>
-                    <option value="">Selecione a prioridade</option>
-                    <option th:each="prioridade : ${prioridades}"
-                            th:value="${prioridade}"
-                            th:text="${prioridade}"
-                            th:selected="${prioridade == chamado.prioridadeOficial}"></option>
-                </select>
-            </p>
-            <button type="submit">Aprovar triagem</button>
-        </form>
+                <section class="admin-detail-card" aria-labelledby="titulo-fotos">
+                    <div class="admin-detail-card-heading">
+                        <div><p class="admin-detail-eyebrow">EVIDÊNCIAS</p><h2 id="titulo-fotos">Fotografias registradas</h2></div>
+                        <span class="admin-detail-count" th:text="${#lists.size(fotos)} + ' foto(s)'">0 foto(s)</span>
+                    </div>
+                    <p class="admin-detail-empty" th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia foi registrada neste chamado.</p>
+                    <div class="admin-detail-photos" th:unless="${#lists.isEmpty(fotos)}">
+                        <article class="admin-detail-photo" th:each="foto : ${fotos}">
+                            <a class="admin-detail-photo-link" th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia em nova aba">
+                                <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                                     th:alt="${foto.tipo.name() == 'PROBLEMA' ? 'Fotografia do problema' : 'Fotografia da solução'}" loading="lazy">
+                            </a>
+                            <div class="admin-detail-photo-info">
+                                <span class="admin-detail-photo-type" th:classappend="${foto.tipo.name() == 'SOLUCAO' ? ' admin-detail-photo-type--solution' : ''}"
+                                      th:text="${foto.tipo.name() == 'PROBLEMA' ? 'Ocorrência' : 'Solução'}">Ocorrência</span>
+                                <small th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}">01/11/2026</small>
+                                <p>Enviada por <strong th:text="${foto.enviadaPor.nome}">Usuário</strong></p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
 
-        <h2>Solicitar mais informações</h2>
-        <form th:action="@{/atendente/chamados/{id}/solicitar-informacoes(id=${chamado.id})}" method="post">
-            <p>
-                <label for="solicitacao">O que o cidadão precisa esclarecer?</label>
-                <textarea id="solicitacao" name="solicitacao" rows="4" maxlength="1700" required></textarea>
-            </p>
-            <button type="submit">Solicitar informações</button>
-        </form>
-    </section>
+                <section class="admin-detail-card" aria-labelledby="titulo-atualizacoes" th:if="${!#lists.isEmpty(atualizacoes)}">
+                    <div class="admin-detail-card-heading">
+                        <div><p class="admin-detail-eyebrow">RESUMO DO ACOMPANHAMENTO</p><h2 id="titulo-atualizacoes">Atualizações importantes</h2></div>
+                    </div>
+                    <p class="admin-detail-section-intro">Última informação de cada assunto. O histórico completo permanece abaixo.</p>
+                    <div class="admin-detail-updates">
+                        <article class="admin-detail-update" th:each="atualizacao : ${atualizacoes}">
+                            <div class="admin-detail-update-heading">
+                                <h3 th:text="${atualizacao.titulo}">Última atualização</h3>
+                                <time th:if="${atualizacao.dataHora != null}" th:text="${#temporals.format(atualizacao.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026</time>
+                            </div>
+                            <p th:text="${atualizacao.texto}">Texto da atualização.</p>
+                        </article>
+                    </div>
+                </section>
 
-    <section th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
-        <h2>Recusar chamado</h2>
-        <form th:action="@{/atendente/chamados/{id}/recusar(id=${chamado.id})}" method="post">
-            <p>
-                <label for="justificativaRecusa">Justificativa da recusa:</label>
-                <textarea id="justificativaRecusa" name="justificativa" rows="4" maxlength="1700" required></textarea>
-            </p>
-            <button type="submit">Recusar chamado</button>
-        </form>
+                <section class="admin-detail-card" aria-labelledby="titulo-historico">
+                    <div class="admin-detail-card-heading">
+                        <div><p class="admin-detail-eyebrow">RASTREABILIDADE</p><h2 id="titulo-historico">Histórico completo</h2></div>
+                    </div>
+                    <p class="admin-detail-section-intro">Todas as movimentações, justificativas e alterações registradas neste chamado.</p>
+                    <p class="admin-detail-empty" th:if="${#lists.isEmpty(historico)}">Nenhuma movimentação registrada.</p>
+                    <div class="admin-detail-history-wrap" th:unless="${#lists.isEmpty(historico)}" tabindex="0" role="region" aria-label="Tabela do histórico completo, rolável horizontalmente">
+                        <table class="admin-detail-history">
+                            <thead><tr>
+                                <th scope="col">Data</th>
+                                <th scope="col">Responsável</th>
+                                <th scope="col">Descrição</th>
+                                <th scope="col">Status anterior</th>
+                                <th scope="col">Novo status</th>
+                            </tr></thead>
+                            <tbody>
+                                <tr th:each="registro : ${historico}">
+                                    <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026</td>
+                                    <td th:text="${registro.usuario != null ? registro.usuario.nome : 'Sistema'}">Sistema</td>
+                                    <td class="admin-detail-history-description" th:text="${registro.descricao}">Descrição</td>
+                                    <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}">-</td>
+                                    <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
 
-        <h2>Marcar como duplicado</h2>
-        <form th:action="@{/atendente/chamados/{id}/duplicado(id=${chamado.id})}" method="post">
-            <p>
-                <label for="protocoloOriginal">Protocolo do chamado original:</label>
-                <input type="text" id="protocoloOriginal" name="protocoloOriginal" placeholder="2026-000001" pattern="[0-9]{4}-[0-9]{6,}" title="Exemplo: 2026-000001" required>
-            </p>
-            <p>Informe um protocolo existente e válido. O cidadão acompanhará a situação do original.</p>
-            <button type="submit">Vincular ao original</button>
-        </form>
-    </section>
+            <!-- Painel contextual: mostra apenas os formulários permitidos pelo status. -->
+            <aside class="admin-detail-actions" aria-label="Decisões e ações administrativas">
+                <section class="admin-detail-card admin-detail-status-card" aria-labelledby="titulo-situacao">
+                    <div class="admin-detail-card-heading">
+                        <div><p class="admin-detail-eyebrow">ATENDIMENTO</p><h2 id="titulo-situacao">Situação atual</h2></div>
+                    </div>
+                    <span class="admin-detail-status admin-detail-status--on-light"
+                          th:classappend="${' admin-detail-status--' + #strings.toLowerCase(chamado.status.name())}"
+                          th:text="${#strings.replace(chamado.status.name(), '_', ' ')}">ENVIADO</span>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'ENVIADO'}">A solicitação está aguardando sua análise inicial.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">Aguardando a resposta do cidadão. Você pode consultar o pedido em atualizações.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'ABERTO'}">O chamado foi aprovado e aguarda a definição de um funcionário.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'ATRIBUIDO'}">O funcionário responsável ainda não iniciou a execução.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'EM_EXECUCAO'}">A equipe de campo está realizando o serviço.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'PENDENTE'}">Um impedimento foi registrado. Verifique a justificativa antes de retomar.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">A execução foi enviada para validação. Confira as fotos e observações.</p>
+                    <p class="admin-detail-help" th:if="${chamado.status.name() == 'RESOLVIDO' or chamado.status.name() == 'RECUSADO' or chamado.status.name() == 'CANCELADO' or chamado.status.name() == 'DUPLICADO'}">Este chamado está encerrado para novas operações de atendimento.</p>
+                </section>
 
-    <section th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO' or
-                      chamado.status.name() == 'EM_EXECUCAO' or chamado.status.name() == 'PENDENTE'}">
-        <h2>Alterar prioridade</h2>
-        <form th:action="@{/atendente/chamados/{id}/prioridade(id=${chamado.id})}" method="post">
-            <p>
-                <label for="novaPrioridade">Prioridade oficial:</label>
-                <select id="novaPrioridade" name="prioridadeOficial" required>
-                    <option th:each="prioridade : ${prioridades}"
-                            th:value="${prioridade}"
-                            th:text="${prioridade}"
-                            th:selected="${prioridade == chamado.prioridadeOficial}"></option>
-                </select>
-            </p>
-            <button type="submit">Salvar prioridade</button>
-        </form>
-    </section>
+                <div class="admin-detail-action-group" th:if="${chamado.status.name() == 'ENVIADO'}">
+                    <section class="admin-detail-card admin-detail-action-card" aria-labelledby="titulo-aprovar-triagem">
+                        <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">TRIAGEM</p><h2 id="titulo-aprovar-triagem">Aprovar chamado</h2></div></div>
+                        <p class="admin-detail-section-intro">Defina a classificação oficial antes da atribuição.</p>
+                        <form th:action="@{/atendente/chamados/{id}/aprovar-triagem(id=${chamado.id})}" method="post">
+                            <div class="admin-detail-field"><label for="categoriaId">Categoria definitiva</label>
+                                <select id="categoriaId" name="categoriaId" required>
+                                    <option value="">Selecione uma categoria</option>
+                                    <option th:each="categoria : ${categorias}" th:value="${categoria.id}"
+                                            th:text="${categoria.nome + ' - ' + categoria.setor.nome}"
+                                            th:selected="${categoria.id == chamado.categoria.id}">Categoria</option>
+                                </select>
+                            </div>
+                            <div class="admin-detail-field"><label for="prioridadeTriagem">Prioridade oficial</label>
+                                <select id="prioridadeTriagem" name="prioridadeOficial" required>
+                                    <option value="">Selecione a prioridade</option>
+                                    <option th:each="prioridade : ${prioridades}" th:value="${prioridade}" th:text="${prioridade}"
+                                            th:selected="${prioridade == chamado.prioridadeOficial}">Prioridade</option>
+                                </select>
+                            </div>
+                            <button class="admin-detail-button admin-detail-button--primary" type="submit">Aprovar triagem</button>
+                        </form>
+                    </section>
 
-    <section th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO'}">
-        <h2 th:text="${chamado.status.name() == 'ATRIBUIDO' ? 'Alterar funcionário responsável' : 'Atribuir funcionário'}"></h2>
-        <p>Funcionários ativos vinculados ao setor da categoria atual.</p>
-        <form th:action="@{/atendente/chamados/{id}/atribuir(id=${chamado.id})}" method="post">
-            <p>
-                <label for="funcionarioId">Funcionário:</label>
-                <select id="funcionarioId" name="funcionarioId" required>
-                    <option value="">Selecione um funcionário</option>
-                    <option th:each="funcionario : ${funcionarios}"
-                            th:value="${funcionario.id}"
-                            th:text="${funcionario.nome}"
-                            th:selected="${chamado.funcionarioResponsavel != null and funcionario.id == chamado.funcionarioResponsavel.id}"></option>
-                </select>
-            </p>
-            <button type="submit">Salvar atribuição</button>
-        </form>
-        <p th:if="${#lists.isEmpty(funcionarios)}">Não existem funcionários ativos para este setor.</p>
-    </section>
+                    <section class="admin-detail-card admin-detail-action-card" aria-labelledby="titulo-solicitar-info">
+                        <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">COMPLEMENTAÇÃO</p><h2 id="titulo-solicitar-info">Solicitar informações</h2></div></div>
+                        <form th:action="@{/atendente/chamados/{id}/solicitar-informacoes(id=${chamado.id})}" method="post">
+                            <div class="admin-detail-field"><label for="solicitacao">O que o cidadão precisa esclarecer?</label>
+                                <textarea id="solicitacao" name="solicitacao" rows="4" maxlength="1700" required placeholder="Descreva a informação necessária para a triagem..."></textarea>
+                            </div>
+                            <button type="submit" class="admin-detail-button admin-detail-button--outline">Solicitar informações</button>
+                        </form>
+                    </section>
+                </div>
 
-    <section th:if="${chamado.status.name() == 'PENDENTE'}">
-        <h2>Retomar chamado pendente</h2>
-        <p>Deixe a seleção em branco para manter o funcionário atual, ou escolha um novo responsável.</p>
-        <form th:action="@{/atendente/chamados/{id}/retomar(id=${chamado.id})}" method="post">
-            <p>
-                <label for="funcionarioRetomada">Funcionário responsável:</label>
-                <select id="funcionarioRetomada" name="funcionarioId">
-                    <option value="">Manter funcionário atual</option>
-                    <option th:each="funcionario : ${funcionarios}"
-                            th:value="${funcionario.id}"
-                            th:text="${funcionario.nome}"></option>
-                </select>
-            </p>
-            <button type="submit">Retomar atendimento</button>
-        </form>
-    </section>
+                <div class="admin-detail-action-group" th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+                    <details class="admin-detail-disclosure">
+                        <summary>Recusar chamado <span aria-hidden="true">⌄</span></summary>
+                        <div class="admin-detail-disclosure-content">
+                            <p class="admin-detail-section-intro">A recusa encerra este chamado e exige justificativa.</p>
+                            <form th:action="@{/atendente/chamados/{id}/recusar(id=${chamado.id})}" method="post">
+                                <div class="admin-detail-field"><label for="justificativaRecusa">Justificativa da recusa</label>
+                                    <textarea id="justificativaRecusa" name="justificativa" rows="4" maxlength="1700" required></textarea>
+                                </div>
+                                <button type="submit" class="admin-detail-button admin-detail-button--danger">Confirmar recusa</button>
+                            </form>
+                        </div>
+                    </details>
+                    <details class="admin-detail-disclosure">
+                        <summary>Marcar como duplicado <span aria-hidden="true">⌄</span></summary>
+                        <div class="admin-detail-disclosure-content">
+                            <p class="admin-detail-section-intro">Vincule o chamado a um protocolo original válido.</p>
+                            <form th:action="@{/atendente/chamados/{id}/duplicado(id=${chamado.id})}" method="post">
+                                <div class="admin-detail-field"><label for="protocoloOriginal">Protocolo original</label>
+                                    <input type="text" id="protocoloOriginal" name="protocoloOriginal" placeholder="2026-000001"
+                                           pattern="[0-9]{4}-[0-9]{6,}" title="Exemplo: 2026-000001" required>
+                                </div>
+                                <button type="submit" class="admin-detail-button admin-detail-button--outline">Vincular ao original</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
 
-    <section th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
-        <h2>Validar execução</h2>
-        <p>Confira as evidências registradas e decida se a execução foi concluída adequadamente.</p>
+                <section class="admin-detail-card admin-detail-action-card"
+                         th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO' or chamado.status.name() == 'EM_EXECUCAO' or chamado.status.name() == 'PENDENTE'}">
+                    <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">CLASSIFICAÇÃO</p><h2>Alterar prioridade</h2></div></div>
+                    <form th:action="@{/atendente/chamados/{id}/prioridade(id=${chamado.id})}" method="post">
+                        <div class="admin-detail-field"><label for="novaPrioridade">Prioridade oficial</label>
+                            <select id="novaPrioridade" name="prioridadeOficial" required>
+                                <option th:each="prioridade : ${prioridades}" th:value="${prioridade}" th:text="${prioridade}"
+                                        th:selected="${prioridade == chamado.prioridadeOficial}">Prioridade</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="admin-detail-button admin-detail-button--outline">Salvar prioridade</button>
+                    </form>
+                </section>
 
-        <form th:action="@{/atendente/chamados/{id}/aprovar-conclusao(id=${chamado.id})}" method="post">
-            <button type="submit">Aprovar conclusão</button>
-        </form>
+                <section class="admin-detail-card admin-detail-action-card" aria-labelledby="titulo-atribuicao"
+                         th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO'}">
+                    <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">RESPONSÁVEL</p>
+                        <h2 id="titulo-atribuicao" th:text="${chamado.status.name() == 'ATRIBUIDO' ? 'Alterar funcionário' : 'Atribuir funcionário'}">Atribuir funcionário</h2></div></div>
+                    <p class="admin-detail-section-intro">Apenas funcionários ativos do setor responsável.</p>
+                    <form th:action="@{/atendente/chamados/{id}/atribuir(id=${chamado.id})}" method="post">
+                        <div class="admin-detail-field"><label for="funcionarioId">Funcionário</label>
+                            <select id="funcionarioId" name="funcionarioId" required>
+                                <option value="">Selecione um funcionário</option>
+                                <option th:each="funcionario : ${funcionarios}" th:value="${funcionario.id}" th:text="${funcionario.nome}"
+                                        th:selected="${chamado.funcionarioResponsavel != null and funcionario.id == chamado.funcionarioResponsavel.id}">Funcionário</option>
+                            </select>
+                        </div>
+                        <p class="admin-detail-help" th:if="${#lists.isEmpty(funcionarios)}">Não existem funcionários ativos para este setor.</p>
+                        <button type="submit" class="admin-detail-button admin-detail-button--primary" th:disabled="${#lists.isEmpty(funcionarios)}">Salvar atribuição</button>
+                    </form>
+                </section>
 
-        <h3>Reprovar execução</h3>
-        <form th:action="@{/atendente/chamados/{id}/reprovar-conclusao(id=${chamado.id})}" method="post">
-            <p>
-                <label for="justificativaReprovacao">Justificativa da reprovação:</label>
-                <textarea id="justificativaReprovacao" name="justificativa" rows="4" maxlength="1700" required></textarea>
-            </p>
-            <p>
-                <label for="novoFuncionarioId">Funcionário responsável:</label>
-                <select id="novoFuncionarioId" name="novoFuncionarioId">
-                    <option value="">Manter funcionário atual</option>
-                    <option th:each="funcionario : ${funcionarios}"
-                            th:value="${funcionario.id}"
-                            th:text="${funcionario.nome}"></option>
-                </select>
-            </p>
-            <button type="submit">Reprovar e devolver para execução</button>
-        </form>
-    </section>
+                <section class="admin-detail-card admin-detail-action-card" th:if="${chamado.status.name() == 'PENDENTE'}">
+                    <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">RETOMADA</p><h2>Retomar atendimento</h2></div></div>
+                    <p class="admin-detail-section-intro">Consulte o impedimento nas atualizações antes de retomar. Você pode manter ou trocar o funcionário.</p>
+                    <form th:action="@{/atendente/chamados/{id}/retomar(id=${chamado.id})}" method="post">
+                        <div class="admin-detail-field"><label for="funcionarioRetomada">Responsável pela retomada</label>
+                            <select id="funcionarioRetomada" name="funcionarioId">
+                                <option value="">Manter funcionário atual</option>
+                                <option th:each="funcionario : ${funcionarios}" th:value="${funcionario.id}" th:text="${funcionario.nome}">Funcionário</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="admin-detail-button admin-detail-button--primary">Retomar chamado</button>
+                    </form>
+                </section>
 
-    <p th:if="${chamado.status.name() == 'RESOLVIDO' or chamado.status.name() == 'RECUSADO' or
-                chamado.status.name() == 'CANCELADO' or chamado.status.name() == 'DUPLICADO'}">
-        Este chamado está encerrado para novas operações de atendimento.
-    </p>
+                <section class="admin-detail-card admin-detail-action-card" th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
+                    <div class="admin-detail-card-heading"><div><p class="admin-detail-eyebrow">DECISÃO FINAL</p><h2>Validar execução</h2></div></div>
+                    <p class="admin-detail-section-intro">Confira a fotografia da solução e as observações antes de decidir.</p>
+                    <form th:action="@{/atendente/chamados/{id}/aprovar-conclusao(id=${chamado.id})}" method="post">
+                        <button type="submit" class="admin-detail-button admin-detail-button--success">Aprovar conclusão</button>
+                    </form>
+                    <details class="admin-detail-disclosure admin-detail-disclosure--inside">
+                        <summary>Reprovar e devolver para execução <span aria-hidden="true">⌄</span></summary>
+                        <div class="admin-detail-disclosure-content">
+                            <form th:action="@{/atendente/chamados/{id}/reprovar-conclusao(id=${chamado.id})}" method="post">
+                                <div class="admin-detail-field"><label for="justificativaReprovacao">Justificativa da reprovação</label>
+                                    <textarea id="justificativaReprovacao" name="justificativa" rows="4" maxlength="1700" required></textarea>
+                                </div>
+                                <div class="admin-detail-field"><label for="novoFuncionarioId">Responsável pela nova execução</label>
+                                    <select id="novoFuncionarioId" name="novoFuncionarioId">
+                                        <option value="">Manter funcionário atual</option>
+                                        <option th:each="funcionario : ${funcionarios}" th:value="${funcionario.id}" th:text="${funcionario.nome}">Funcionário</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="admin-detail-button admin-detail-button--danger">Confirmar reprovação</button>
+                            </form>
+                        </div>
+                    </details>
+                </section>
+            </aside>
+        </div>
+    </main>
 
-    <h2>Fotografias registradas</h2>
-    <p th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia registrada.</p>
-    <ul th:unless="${#lists.isEmpty(fotos)}">
-        <li th:each="foto : ${fotos}">
-            <span th:text="${foto.tipo}"></span> —
-            <span th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}"></span>
-            <span> — Enviada por: </span><span th:text="${foto.enviadaPor.nome}"></span>
-            <p>
-                <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                   target="_blank" rel="noopener noreferrer">Abrir fotografia</a>
-            </p>
-            <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                 th:alt="${foto.tipo.name() == 'PROBLEMA' ? 'Fotografia do problema' : 'Fotografia da solucao'}"
-                 width="320" loading="lazy">
-        </li>
-    </ul>
-
-    <h2>Histórico do chamado</h2>
-    <p th:if="${#lists.isEmpty(historico)}">Nenhuma movimentação registrada.</p>
-    <table th:unless="${#lists.isEmpty(historico)}">
-        <thead>
-            <tr>
-                <th scope="col">Data</th>
-                <th scope="col">Responsável pela ação</th>
-                <th scope="col">Descrição</th>
-                <th scope="col">Status anterior</th>
-                <th scope="col">Status novo</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="registro : ${historico}">
-                <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}"></td>
-                <td th:text="${registro.usuario != null ? registro.usuario.nome : 'Sistema'}"></td>
-                <td th:text="${registro.descricao}"></td>
-                <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}"></td>
-                <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}"></td>
-            </tr>
-        </tbody>
-    </table>
-    <!-- Leaflet: usa a latitude e a longitude do chamado como centro, sem alterar os dados. -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         (function () {
             const elemento = document.getElementById('mapa-localizacao');
-
-            // Chamados com somente endereco continuam exibindo os dados textuais.
             if (!elemento) return;
 
             const latitude = Number(elemento.dataset.latitude);
             const longitude = Number(elemento.dataset.longitude);
-
             if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
                 Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
                 elemento.textContent = 'As coordenadas deste chamado são inválidas.';
                 return;
             }
-
             if (typeof L === 'undefined') {
                 elemento.textContent = 'Não foi possível carregar o mapa. Verifique a conexão com a internet.';
                 return;
             }
-
-            const mapa = L.map(elemento, { scrollWheelZoom: false })
-                          .setView([latitude, longitude], 16);
-
+            const mapa = L.map(elemento, { scrollWheelZoom: false }).setView([latitude, longitude], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(mapa);
-
-            L.marker([latitude, longitude])
-             .addTo(mapa)
-             .bindPopup('Local informado no chamado.');
+            L.marker([latitude, longitude]).addTo(mapa).bindPopup('Local informado no chamado.');
         })();
     </script>
 </body>

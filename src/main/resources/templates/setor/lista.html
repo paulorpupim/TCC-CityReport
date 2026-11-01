@@ -3,56 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setores - CityReport</title>
+    <meta name="theme-color" content="#0F172A">
+    <title>Setores | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/cadastros-administracao.css}" href="/css/cadastros-administracao.css">
 </head>
-<body>
-    <h1>Setores</h1>
-
-    <nav>
-        <a th:href="@{/atendente/setores}">Setores</a> |
-        <a th:href="@{/atendente/categorias}">Categorias</a>
-    </nav>
-
-    <p>
-        <a th:href="@{/atendente/setores/novo}">Cadastrar setor</a>
-    </p>
-
-    <p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}"></p>
-    <p th:if="${mensagemErro}" th:text="${mensagemErro}"></p>
-
-    <p th:if="${#lists.isEmpty(setores)}">Nenhum setor cadastrado até o momento.</p>
-
-    <table th:unless="${#lists.isEmpty(setores)}">
-        <thead>
-            <tr>
-                <th scope="col">Código</th>
-                <th scope="col">Nome</th>
-                <th scope="col">Situação</th>
-                <th scope="col">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="setor : ${setores}">
-                <td th:text="${setor.id}"></td>
-                <td th:text="${setor.nome}"></td>
-                <td th:text="${setor.ativo} ? 'Ativo' : 'Inativo'"></td>
-                <td>
-                    <a th:href="@{/atendente/setores/{id}/editar(id=${setor.id})}">Editar</a>
-
-                    <form th:if="${setor.ativo}"
-                          th:action="@{/atendente/setores/{id}/desativar(id=${setor.id})}"
-                          method="post">
-                        <button type="submit">Desativar</button>
-                    </form>
-
-                    <form th:unless="${setor.ativo}"
-                          th:action="@{/atendente/setores/{id}/ativar(id=${setor.id})}"
-                          method="post">
-                        <button type="submit">Ativar</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<body class="home-page admin-crud-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header class="home-header">
+        <div class="home-header-inner">
+            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
+                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt="" class="home-brand-icon" width="48" height="48">
+                <span class="home-brand-copy">
+                    <span class="home-brand-name">CITY<span>REPORT</span></span>
+                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
+                </span>
+            </a>
+            <nav class="home-nav" aria-label="Navegação administrativa">
+                <a class="home-nav-link" th:href="@{/}" href="/">Início</a>
+                <a class="home-nav-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
+                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
+                <a class="home-nav-link is-current" th:href="@{/atendente/setores}" href="/atendente/setores" aria-current="page">Setores</a>
+            </nav>
+            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="home-logout-button" type="submit">Sair</button>
+            </form>
+        </div>
+    </header>
+    <main class="admin-crud-container" id="conteudo">
+        <section class="admin-crud-hero" aria-labelledby="titulo-pagina">
+            <div class="admin-crud-hero-copy">
+                <p class="admin-crud-eyebrow">CADASTROS · ESTRUTURA MUNICIPAL</p>
+                <h1 id="titulo-pagina">Gerenciar setores</h1>
+                <p>Cadastre e mantenha atualizados os setores responsáveis pelos serviços municipais.</p>
+            </div>
+            <a class="admin-crud-button admin-crud-button-primary" th:href="@{/atendente/setores/novo}" href="/atendente/setores/novo">Novo setor <span aria-hidden="true">→</span></a>
+        </section>
+        <div class="admin-crud-subnav" aria-label="Áreas de cadastro">
+            <a class="is-active" aria-current="page" th:href="@{/atendente/setores}">Setores</a>
+            <a th:href="@{/atendente/categorias}">Categorias</a>
+            <a th:href="@{/atendente/usuarios}">Usuários</a>
+        </div>
+        <p class="admin-crud-message admin-crud-message-success" role="status" th:if="${mensagemSucesso}" th:text="${mensagemSucesso}">Operação concluída.</p>
+        <p class="admin-crud-message admin-crud-message-error" role="alert" th:if="${mensagemErro}" th:text="${mensagemErro}">Não foi possível concluir.</p>
+        <section class="admin-crud-panel" aria-label="Listagem dos setores">
+            <div class="admin-crud-panel-heading">
+                <div>
+                    <p class="admin-crud-kicker">REGISTROS</p>
+                    <h2>Setores cadastrados</h2>
+                </div>
+                <span class="admin-crud-count" th:text="${#lists.size(setores)} + ' registros'">0 registros</span>
+            </div>
+            <div class="admin-crud-empty" th:if="${#lists.isEmpty(setores)}">
+                <span class="admin-crud-empty-icon" aria-hidden="true">▦</span>
+                <h3>Nenhum setor cadastrado</h3>
+                <p>Comece cadastrando o primeiro setor responsável pelo atendimento.</p>
+                <a class="admin-crud-button admin-crud-button-primary" th:href="@{/atendente/setores/novo}">Cadastrar setor</a>
+            </div>
+            <div class="admin-crud-table-wrap" th:unless="${#lists.isEmpty(setores)}">
+                <table class="admin-crud-table">
+                    <thead><tr><th scope="col">Código</th><th scope="col">Setor</th><th scope="col">Situação</th><th scope="col">Ações</th></tr></thead>
+                    <tbody>
+                        <tr th:each="setor : ${setores}">
+                            <td data-label="Código" th:text="${setor.id}">1</td>
+                            <td data-label="Setor"><strong class="admin-crud-name" th:text="${setor.nome}">Obras</strong></td>
+                            <td data-label="Situação"><span class="admin-crud-status" th:classappend="${setor.ativo} ? 'is-active' : 'is-inactive'" th:text="${setor.ativo} ? 'Ativo' : 'Inativo'">Ativo</span></td>
+                            <td data-label="Ações" class="admin-crud-actions-cell">
+                                <div class="admin-crud-row-actions">
+                                    <a class="admin-crud-button admin-crud-button-outline" th:href="@{/atendente/setores/{id}/editar(id=${setor.id})}">Editar</a>
+                                    <form th:if="${setor.ativo}" th:action="@{/atendente/setores/{id}/desativar(id=${setor.id})}" method="post">
+                                        <button class="admin-crud-button admin-crud-button-muted" type="submit">Desativar</button>
+                                    </form>
+                                    <form th:unless="${setor.ativo}" th:action="@{/atendente/setores/{id}/ativar(id=${setor.id})}" method="post">
+                                        <button class="admin-crud-button admin-crud-button-success" type="submit">Ativar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
 </body>
 </html>

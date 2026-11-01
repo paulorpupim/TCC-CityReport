@@ -1,0 +1,568 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Identidade fornecida no documento do CityReport */
+  --cr-marinho: #192231;
+  --cr-noite: #0F172A;
+  --cr-ciano: #2B9DF4;
+  --cr-azul-grade: #2A3A52;
+  --cr-vermelho: #CC0000;
+  --cr-amarelo: #FFCC00;
+  --cr-laranja: #FF9500;
+  --cr-verde: #10B981;
+  --cr-branco: #FFFFFF;
+  --cr-cinza-claro: #F8F9FA;
+
+  /* Cores de interface, sem substituir as cores institucionais */
+  --cr-fundo: var(--cr-cinza-claro);
+  --cr-superficie: var(--cr-branco);
+  --cr-texto: var(--cr-noite);
+  --cr-texto-suave: #526178;
+  --cr-borda: #D9E1EB;
+  --cr-borda-forte: #BCC9D9;
+  --cr-link: #146DAA; /* contraste AA em fundo claro */
+  --cr-link-hover: #0E6099;
+  --cr-focus: #146DAA;
+
+  /* Tons suaves para mensagens, sempre com texto escuro */
+  --cr-info-fundo: #EAF5FF;
+  --cr-info-borda: #8CC8F5;
+  --cr-sucesso-fundo: #E6F8F1;
+  --cr-sucesso-borda: #79D8B3;
+  --cr-alerta-fundo: #FFF7DC;
+  --cr-alerta-borda: #E5C365;
+  --cr-erro-fundo: #FFF0F0;
+  --cr-erro-borda: #E3A2A2;
+
+  /* Tipografia e espaçamentos */
+  --cr-fonte: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Arial, sans-serif;
+  --cr-texto-base: 1rem;
+  --cr-linha: 1.5;
+  --cr-espaco-1: 0.25rem;
+  --cr-espaco-2: 0.5rem;
+  --cr-espaco-3: 0.75rem;
+  --cr-espaco-4: 1rem;
+  --cr-espaco-5: 1.25rem;
+  --cr-espaco-6: 1.5rem;
+  --cr-espaco-8: 2rem;
+  --cr-espaco-10: 2.5rem;
+
+  /* Cantos discretamente arredondados */
+  --cr-raio-sm: 0.375rem;
+  --cr-raio-md: 0.625rem;
+  --cr-raio-lg: 0.875rem;
+  --cr-raio-pill: 999px;
+  --cr-sombra: 0 4px 18px rgb(15 23 42 / 5%);
+  --cr-conteudo-max: 1320px;
+
+  color-scheme: light;
+}
+
+/* 2. BASE E ACESSIBILIDADE ================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  max-width: var(--cr-conteudo-max);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--cr-espaco-6) clamp(1rem, 3vw, 2.5rem);
+  background: var(--cr-fundo);
+  color: var(--cr-texto);
+  font-family: var(--cr-fonte);
+  font-size: var(--cr-texto-base);
+  line-height: var(--cr-linha);
+  overflow-wrap: break-word;
+}
+
+::selection {
+  color: var(--cr-noite);
+  background: #A8DDFF;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cr-focus);
+  outline-offset: 3px;
+}
+
+/* Não retirar o foco de teclado dos controles. */
+:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Link de pular para conteúdo: disponível quando o adicionarmos ao layout. */
+.skip-link {
+  position: absolute;
+  z-index: 10000;
+  top: -5rem;
+  left: 1rem;
+  padding: var(--cr-espaco-3) var(--cr-espaco-4);
+  border-radius: var(--cr-raio-sm);
+  background: var(--cr-noite);
+  color: var(--cr-branco);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.skip-link:hover,
+.skip-link:focus { color: var(--cr-branco); }
+
+/* 3. TIPOGRAFIA E LINKS ==================================================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 var(--cr-espaco-4);
+  color: var(--cr-noite);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: clamp(1.75rem, 2.7vw, 2.25rem); }
+h2 { font-size: clamp(1.375rem, 2vw, 1.75rem); }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+h5,
+h6 { font-size: 1rem; }
+
+p { margin: 0 0 var(--cr-espaco-4); }
+small, .text-small { font-size: 0.875rem; }
+strong, b { font-weight: 700; }
+
+.text-muted { color: var(--cr-texto-suave); }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-danger { color: #A10000; }
+.text-success { color: #086344; }
+
+/* Ciano puro não é suficientemente contrastante para texto em fundo branco. */
+a {
+  color: var(--cr-link);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+a:hover { color: var(--cr-link-hover); }
+
+hr {
+  margin: var(--cr-espaco-6) 0;
+  border: 0;
+  border-top: 1px solid var(--cr-borda);
+}
+
+/* 4. ESTRUTURA GENÉRICA ==================================================== */
+main { margin-top: var(--cr-espaco-6); }
+section { margin-bottom: var(--cr-espaco-8); }
+
+.container {
+  width: 100%;
+  max-width: var(--cr-conteudo-max);
+  margin-inline: auto;
+}
+
+.container-sm { max-width: 760px; margin-inline: auto; }
+
+.stack > * + * { margin-top: var(--cr-espaco-4); }
+
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cr-espaco-3);
+  flex-wrap: wrap;
+}
+
+.card,
+.panel {
+  padding: var(--cr-espaco-6);
+  border: 1px solid var(--cr-borda);
+  border-radius: var(--cr-raio-lg);
+  background: var(--cr-superficie);
+  box-shadow: var(--cr-sombra);
+}
+
+.card-header,
+.panel-header {
+  margin-bottom: var(--cr-espaco-4);
+  padding-bottom: var(--cr-espaco-3);
+  border-bottom: 1px solid var(--cr-borda);
+}
+
+/* Preparação para a logo, sem inseri-la em nenhuma página. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cr-espaco-3);
+}
+
+.brand-logo {
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.brand-name {
+  color: var(--cr-noite);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* 5. NAVEGAÇÃO ============================================================= */
+nav {
+  margin-bottom: var(--cr-espaco-6);
+  padding: var(--cr-espaco-3) var(--cr-espaco-4);
+  border: 1px solid var(--cr-borda);
+  border-radius: var(--cr-raio-md);
+  background: var(--cr-superficie);
+}
+
+nav a {
+  display: inline-block;
+  margin: 0.15rem 0.2rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--cr-raio-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a[aria-current='page'],
+nav a.active {
+  background: var(--cr-info-fundo);
+  color: var(--cr-noite);
+}
+
+nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cr-espaco-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Para as futuras cinco abas e outras navegações. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cr-espaco-2);
+  padding-bottom: var(--cr-espaco-3);
+  border-bottom: 1px solid var(--cr-borda);
+}
+
+.tabs a {
+  padding: var(--cr-espaco-2) var(--cr-espaco-4);
+  border-radius: var(--cr-raio-sm);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tabs a:hover { background: var(--cr-info-fundo); }
+.tabs a[aria-current='page'],
+.tabs a.active {
+  background: var(--cr-noite);
+  color: var(--cr-branco);
+}
+
+/* 6. FORMULÁRIOS =========================================================== */
+form { margin-bottom: var(--cr-espaco-5); }
+
+.form-group,
+.field { margin-bottom: var(--cr-espaco-4); }
+
+label {
+  display: inline-block;
+  margin-bottom: var(--cr-espaco-2);
+  color: var(--cr-noite);
+  font-weight: 600;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+select,
+textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--cr-borda-forte);
+  border-radius: var(--cr-raio-sm);
+  background: var(--cr-branco);
+  color: var(--cr-noite);
+  font: inherit;
+  line-height: 1.45;
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder { color: #617087; opacity: 1; }
+
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--cr-link);
+  box-shadow: 0 0 0 3px rgb(43 157 244 / 16%);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0 0.3rem 0 0;
+  accent-color: var(--cr-link);
+  vertical-align: middle;
+}
+
+.choice,
+.checkbox-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cr-espaco-2);
+  margin: var(--cr-espaco-1) var(--cr-espaco-3) var(--cr-espaco-1) 0;
+  font-weight: 400;
+}
+
+.form-help { margin-top: var(--cr-espaco-1); color: var(--cr-texto-suave); font-size: 0.875rem; }
+.field-error { margin-top: var(--cr-espaco-1); color: #A10000; font-size: 0.875rem; }
+[aria-invalid='true'] { border-color: var(--cr-vermelho) !important; }
+
+/* 7. BOTÕES ================================================================ */
+button,
+input[type='submit'],
+input[type='button'],
+input[type='reset'],
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cr-espaco-2);
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--cr-raio-sm);
+  background: var(--cr-ciano);
+  color: var(--cr-noite);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 140ms ease, background-color 140ms ease,
+    border-color 140ms ease, transform 140ms ease;
+}
+
+button:not(:disabled):hover,
+input[type='submit']:not(:disabled):hover,
+input[type='button']:not(:disabled):hover,
+input[type='reset']:not(:disabled):hover,
+.btn:not(:disabled):hover {
+  filter: brightness(0.95);
+}
+
+button:not(:disabled):active,
+.btn:not(:disabled):active { transform: translateY(1px); }
+
+.btn-primary { background: var(--cr-ciano); color: var(--cr-noite); }
+.btn-secondary { background: var(--cr-marinho); color: var(--cr-branco); }
+.btn-danger { background: var(--cr-vermelho); color: var(--cr-branco); }
+.btn-success { background: var(--cr-verde); color: var(--cr-noite); }
+.btn-warning { background: var(--cr-amarelo); color: var(--cr-noite); }
+.btn-orange { background: var(--cr-laranja); color: var(--cr-noite); }
+.btn-outline {
+  border-color: var(--cr-borda-forte);
+  background: var(--cr-branco);
+  color: var(--cr-noite);
+}
+.btn-sm { min-height: 2.15rem; padding: 0.3rem 0.65rem; font-size: 0.875rem; }
+/* Links com aparência de botão preservam o contraste ao passar o mouse. */
+a.btn-primary:hover,
+a.btn-success:hover,
+a.btn-warning:hover,
+a.btn-orange:hover,
+a.btn-outline:hover { color: var(--cr-noite); }
+a.btn-secondary:hover,
+a.btn-danger:hover { color: var(--cr-branco); }
+
+.btn-block { width: 100%; }
+
+/* 8. TABELAS =============================================================== */
+/* As tabelas podem receber .table-responsive como invólucro no futuro. */
+.table-responsive { max-width: 100%; overflow-x: auto; }
+
+table {
+  width: 100%;
+  margin: var(--cr-espaco-4) 0 var(--cr-espaco-6);
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--cr-borda);
+  border-radius: var(--cr-raio-md);
+  background: var(--cr-superficie);
+}
+
+th,
+td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--cr-borda);
+  text-align: left;
+  vertical-align: middle;
+}
+
+thead th {
+  background: var(--cr-marinho);
+  color: var(--cr-branco);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+thead th:first-child { border-top-left-radius: var(--cr-raio-md); }
+thead th:last-child { border-top-right-radius: var(--cr-raio-md); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #F2F7FD; }
+td form { display: inline-flex; margin: 0.1rem; }
+td button { min-height: 2.2rem; padding: 0.35rem 0.65rem; font-size: 0.875rem; }
+
+/* 9. ETIQUETAS DE STATUS E PRIORIDADE ====================================== */
+.badge,
+.status,
+.priority {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cr-espaco-1);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--cr-raio-pill);
+  background: var(--cr-azul-grade);
+  color: var(--cr-branco);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge-info,
+.status-enviado,
+.status-aberto,
+.status-em-execucao { background: var(--cr-ciano); color: var(--cr-noite); }
+
+.badge-warning,
+.status-aguardando-informacoes,
+.status-pendente { background: var(--cr-amarelo); color: var(--cr-noite); }
+
+.status-atribuido,
+.status-aguardando-validacao { background: var(--cr-laranja); color: var(--cr-noite); }
+
+.badge-success,
+.status-resolvido { background: var(--cr-verde); color: var(--cr-noite); }
+
+.badge-danger,
+.status-recusado,
+.status-cancelado { background: var(--cr-vermelho); color: var(--cr-branco); }
+
+.status-duplicado { background: var(--cr-azul-grade); color: var(--cr-branco); }
+
+.priority-critica { background: var(--cr-vermelho); color: var(--cr-branco); }
+.priority-alta { background: var(--cr-laranja); color: var(--cr-noite); }
+.priority-media { background: var(--cr-amarelo); color: var(--cr-noite); }
+.priority-baixa { background: var(--cr-verde); color: var(--cr-noite); }
+
+/* 10. MENSAGENS DO SISTEMA ================================================= */
+.alert,
+.message {
+  margin: var(--cr-espaco-4) 0;
+  padding: var(--cr-espaco-4);
+  border: 1px solid var(--cr-info-borda);
+  border-left: 4px solid var(--cr-link);
+  border-radius: var(--cr-raio-md);
+  background: var(--cr-info-fundo);
+  color: var(--cr-noite);
+}
+
+.alert-success,
+.message-success {
+  border-color: var(--cr-sucesso-borda);
+  border-left-color: #08794E;
+  background: var(--cr-sucesso-fundo);
+}
+
+.alert-warning,
+.message-warning {
+  border-color: var(--cr-alerta-borda);
+  border-left-color: #A86500;
+  background: var(--cr-alerta-fundo);
+}
+
+.alert-danger,
+.message-danger {
+  border-color: var(--cr-erro-borda);
+  border-left-color: var(--cr-vermelho);
+  background: var(--cr-erro-fundo);
+}
+
+/* 11. FOTOGRAFIAS E MAPAS ================================================== */
+/* Evita interferir nas tiles, marcadores e controles internos do Leaflet. */
+img:not(.leaflet-tile):not(.leaflet-marker-icon):not(.leaflet-marker-shadow) {
+  max-width: 100%;
+  height: auto;
+}
+
+.photo,
+.photo-preview {
+  display: block;
+  max-width: 100%;
+  border: 1px solid var(--cr-borda);
+  border-radius: var(--cr-raio-md);
+}
+
+.map-frame {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--cr-borda);
+  border-radius: var(--cr-raio-md);
+}
+
+/* 12. RESPONSIVIDADE E PREFERÊNCIAS ======================================== */
+@media (max-width: 700px) {
+  body { padding: var(--cr-espaco-4); }
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.35rem; }
+  .card, .panel { padding: var(--cr-espaco-4); }
+  th, td { padding: 0.65rem; font-size: 0.875rem; }
+  .tabs { gap: var(--cr-espaco-1); }
+  .tabs a { padding: 0.5rem 0.65rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
