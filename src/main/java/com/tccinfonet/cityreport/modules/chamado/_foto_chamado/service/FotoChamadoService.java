@@ -72,6 +72,18 @@ public class FotoChamadoService {
         return fotos;
     }
 
+    // Consulta apenas a fotografia final aprovada, sem buscar todas as fotos do problema.
+    // Utilizada na seção Conclusão dos detalhes do cidadão.
+    public List<FotoChamado> listarFotoDeSolucaoAprovada(Chamado chamado) {
+        if (chamado.getStatus() != StatusChamado.RESOLVIDO) {
+            return List.of();
+        }
+        return fotoChamadoRepository.findFirstByChamadoIdAndTipoOrderByDataEnvioDescIdDesc(
+                chamado.getId(), TipoFoto.SOLUCAO)
+                .map(foto -> List.of(foto))
+                .orElseGet(List::of);
+    }
+
     // Usado tambem pela rota de imagem; nao basta ocultar as fotos no HTML.
     public boolean ehFotoDeSolucaoAprovada(Chamado chamado, FotoChamado foto) {
         return chamado.getStatus() == StatusChamado.RESOLVIDO

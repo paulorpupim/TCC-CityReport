@@ -3,6 +3,7 @@ package com.tccinfonet.cityreport.modules.chamado._historico_chamado.service;
 import java.util.EnumSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,34 @@ public class HistoricoChamadoService {
                              TipoAtualizacao.OBSERVACAO_EXECUCAO)
                 : EnumSet.allOf(TipoAtualizacao.class);
         return listarAtualizacoesFiltradas(chamadoId, permitidos);
+    }
+
+    // Exibe TODAS as interacoes de uma secao, em ordem cronologica.
+    // Preserva registros anteriores ao enum tipoAtualizacao (pela descricao).
+    // Nao modifica o historico e nao cria um chat livre.
+    public List<AtualizacaoChamadoDTO> listarInteracoes(Long chamadoId, Set<TipoAtualizacao> tipos) {
+        List<AtualizacaoChamadoDTO> resultado = new ArrayList<>();
+        for (HistoricoChamado registro :
+                historicoChamadoRepository.findByChamadoIdOrderByDataHoraAscIdAsc(chamadoId)) {
+            TipoAtualizacao tipo = registro.getTipoAtualizacao();
+            if (tipo == null) {
+                tipo = TipoAtualizacao.identificarDescricaoAntiga(registro.getDescricao());
+            }
+            if (tipo == null || !tipos.contains(tipo)) continue;
+
+            String titulo = switch (tipo) {
+                case SOLICITACAO_INFORMACOES -> "Solicitacao de informacoes";
+                case RESPOSTA_INFORMACOES -> "Resposta do cidadao";
+                case RECUSA_CHAMADO -> "Justificativa da recusa";
+                case CANCELAMENTO -> "Justificativa do cancelamento";
+                case IMPEDIMENTO -> "Impedimento registrado";
+                case REPROVACAO_EXECUCAO -> "Execucao reprovada";
+                case OBSERVACAO_EXECUCAO -> "Observacao de execucao";
+            };
+            resultado.add(new AtualizacaoChamadoDTO(
+                    tipo, titulo, tipo.extrairTexto(registro.getDescricao()), registro.getDataHora()));
+        }
+        return resultado;
     }
 
     // Um unico registro (o mais recente) por categoria permitida.

@@ -31,6 +31,7 @@ import com.tccinfonet.cityreport.modules.chamado._foto_chamado.entity.FotoChamad
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.enums.TipoFoto;
 import com.tccinfonet.cityreport.modules.chamado._foto_chamado.service.FotoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
+import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAtualizacao;
 import com.tccinfonet.cityreport.modules.chamado.dto.CriarChamadoDTO;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
@@ -95,16 +96,40 @@ public class ChamadoController {
         }
     }
 
+    // Cada seção traz apenas os registros necessários; autorização antes das consultas.
     @GetMapping("/chamados/{id}")
-    public String detalhesDoCidadao(@PathVariable Long id, Authentication autenticacao, Model model) {
-        // A verificacao da autoria ocorre ANTES de consultar fotos e historico.
+    public String detalhesDoCidadao(@PathVariable Long id,
+                                   @RequestParam(defaultValue = "informacoes") String secao,
+                                   Authentication autenticacao, Model model) {
         Chamado chamado = chamadoService.buscarDoCidadao(id, autenticacao.getName());
+        if (!Set.of("informacoes", "comunicacao", "conclusao", "historico").contains(secao)) {
+            secao = "informacoes";
+        }
         model.addAttribute("chamado", chamado);
-        model.addAttribute("statusAcompanhamento", chamadoService.consultarAndamento(id, autenticacao.getName()));
-        model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
-        model.addAttribute("atualizacoes", historicoChamadoService.listarAtualizacoesDoCidadao(id));
-        // Fotos do problema e somente a solucao efetivamente aprovada.
-        model.addAttribute("fotos", fotoChamadoService.listarFotosParaCidadao(chamado));
+        model.addAttribute("secao", secao);
+
+        switch (secao) {
+            case "informacoes" -> {
+                model.addAttribute("fotos", fotoChamadoService.listarPorChamadoETipo(id, TipoFoto.PROBLEMA));
+                if (chamado.getStatus() == StatusChamado.DUPLICADO) {
+                    model.addAttribute("statusAcompanhamento",
+                            chamadoService.consultarAndamento(id, autenticacao.getName()));
+                }
+                if (chamado.getStatus() == StatusChamado.RECUSADO
+                        || chamado.getStatus() == StatusChamado.CANCELADO) {
+                    model.addAttribute("justificativas", historicoChamadoService.listarInteracoes(id,
+                            Set.of(TipoAtualizacao.RECUSA_CHAMADO, TipoAtualizacao.CANCELAMENTO)));
+                }
+            }
+            case "comunicacao" -> model.addAttribute("interacoes", historicoChamadoService.listarInteracoes(id,
+                    Set.of(TipoAtualizacao.SOLICITACAO_INFORMACOES, TipoAtualizacao.RESPOSTA_INFORMACOES)));
+            case "conclusao" -> {
+                // Mantém o filtro já existente: o cidadão vê apenas a última solução aprovada.
+                model.addAttribute("fotos", fotoChamadoService.listarFotoDeSolucaoAprovada(chamado));
+            }
+            case "historico" -> model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
+            default -> throw new IllegalStateException("Secao invalida.");
+        }
         return "chamado/detalhes";
     }
 
@@ -136,7 +161,7 @@ public class ChamadoController {
                                RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoService.complementarInformacoes(id, resposta, autenticacao.getName()),
-                "Informacoes enviadas.", "/chamados/" + id, redirectAttributes);
+                "Informacoes enviadas.", "/chamados/" + id + "?secao=comunicacao", redirectAttributes);
     }
 
     // Exibe uma foto SOMENTE depois de verificar o acesso ao chamado.
@@ -277,20 +302,70 @@ public class ChamadoController {
         return "chamado/administracao/lista";
     }
 
+    // A navegacao por secao evita carregar fotos de solucao e historico ao abrir Informacoes.
+    // A rota antiga continua valida e abre a secao Informacoes por padrao.
     @GetMapping("/atendente/chamados/{id}")
-    public String detalhesDoAtendente(@PathVariable Long id, Model model) {
+    public String detalhesDoAtendente(@PathVariable Long id,
+                                      @RequestParam(defaultValue = "informacoes") String secao,
+                                      Model model) {
+        if (!Set.of("informacoes", "comunicacao", "impedimento", "conclusao", "historico").contains(secao)) {
+            secao = "informacoes";
+        }
         Chamado chamado = chamadoService.buscarPorId(id);
-
         model.addAttribute("chamado", chamado);
-        model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
-        model.addAttribute("atualizacoes", historicoChamadoService.listarAtualizacoes(id, false));
-        model.addAttribute("fotos", fotoChamadoService.listarPorChamado(id));
-        model.addAttribute("categorias", categoriaService.listarAtivas());
-        model.addAttribute("prioridades", Prioridade.values());
+        model.addAttribute("secao", secao);
 
-        // Apenas funcionarios ativos do setor responsavel pela categoria.
-        Long setorId = chamado.getCategoria().getSetor().getId();
-        model.addAttribute("funcionarios", usuarioService.listarFuncionariosAtivosPorSetor(setorId));
+        switch (secao) {
+            case "informacoes" -> {
+                model.addAttribute("fotos", fotoChamadoService.listarPorChamadoETipo(id, TipoFoto.PROBLEMA));
+                // Recusa e cancelamento sao visiveis na ficha do chamado.
+                if (chamado.getStatus() == StatusChamado.RECUSADO
+                        || chamado.getStatus() == StatusChamado.CANCELADO) {
+                    model.addAttribute("justificativas", historicoChamadoService.listarInteracoes(id,
+                            Set.of(TipoAtualizacao.RECUSA_CHAMADO, TipoAtualizacao.CANCELAMENTO)));
+                }
+                if (chamado.getStatus() == StatusChamado.ENVIADO) {
+                    model.addAttribute("categorias", categoriaService.listarAtivas());
+                }
+                if (Set.of(StatusChamado.ENVIADO, StatusChamado.ABERTO, StatusChamado.ATRIBUIDO,
+                        StatusChamado.EM_EXECUCAO, StatusChamado.PENDENTE).contains(chamado.getStatus())) {
+                    model.addAttribute("prioridades", Prioridade.values());
+                }
+                if (chamado.getStatus() == StatusChamado.ABERTO
+                        || chamado.getStatus() == StatusChamado.ATRIBUIDO) {
+                    Long setorId = chamado.getCategoria().getSetor().getId();
+                    model.addAttribute("funcionarios", usuarioService.listarFuncionariosAtivosPorSetor(setorId));
+                }
+            }
+            case "comunicacao" -> model.addAttribute("interacoes", historicoChamadoService.listarInteracoes(id,
+                    Set.of(TipoAtualizacao.SOLICITACAO_INFORMACOES, TipoAtualizacao.RESPOSTA_INFORMACOES)));
+            case "impedimento" -> {
+                model.addAttribute("interacoes", historicoChamadoService.listarInteracoes(id,
+                        Set.of(TipoAtualizacao.IMPEDIMENTO)));
+                if (chamado.getStatus() == StatusChamado.PENDENTE) {
+                    Long setorId = chamado.getCategoria().getSetor().getId();
+                    model.addAttribute("funcionarios", usuarioService.listarFuncionariosAtivosPorSetor(setorId));
+                }
+            }
+            case "conclusao" -> {
+                model.addAttribute("fotos", fotoChamadoService.listarPorChamadoETipo(id, TipoFoto.SOLUCAO));
+                // Uma consulta ao historico; separacao somente para a apresentacao.
+                var registrosConclusao = historicoChamadoService.listarInteracoes(id,
+                        Set.of(TipoAtualizacao.OBSERVACAO_EXECUCAO, TipoAtualizacao.REPROVACAO_EXECUCAO));
+                model.addAttribute("observacoes", registrosConclusao.stream()
+                        .filter(item -> item.getTipo() == TipoAtualizacao.OBSERVACAO_EXECUCAO)
+                        .toList());
+                model.addAttribute("reprovacoes", registrosConclusao.stream()
+                        .filter(item -> item.getTipo() == TipoAtualizacao.REPROVACAO_EXECUCAO)
+                        .toList());
+                if (chamado.getStatus() == StatusChamado.AGUARDANDO_VALIDACAO) {
+                    Long setorId = chamado.getCategoria().getSetor().getId();
+                    model.addAttribute("funcionarios", usuarioService.listarFuncionariosAtivosPorSetor(setorId));
+                }
+            }
+            case "historico" -> model.addAttribute("historico", historicoChamadoService.listarPorChamado(id));
+            default -> throw new IllegalStateException("Secao invalida.");
+        }
         return "chamado/administracao/detalhes";
     }
 
@@ -302,7 +377,7 @@ public class ChamadoController {
                                 RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.aprovarTriagem(id, categoriaId, prioridadeOficial, autenticacao.getName()),
-                "Triagem aprovada.", "/atendente/chamados/" + id, redirectAttributes);
+                "Triagem aprovada.", "/atendente/chamados/" + id + "?secao=informacoes", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/prioridade")
@@ -312,7 +387,7 @@ public class ChamadoController {
                                     RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.alterarPrioridade(id, prioridadeOficial, autenticacao.getName()),
-                "Prioridade atualizada.", "/atendente/chamados/" + id, redirectAttributes);
+                "Prioridade atualizada.", "/atendente/chamados/" + id + "?secao=informacoes", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/atribuir")
@@ -322,7 +397,7 @@ public class ChamadoController {
                            RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.atribuir(id, funcionarioId, autenticacao.getName()),
-                "Funcionario atribuido.", "/atendente/chamados/" + id, redirectAttributes);
+                "Funcionario atribuido.", "/atendente/chamados/" + id + "?secao=informacoes", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/recusar")
@@ -332,7 +407,7 @@ public class ChamadoController {
                           RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.recusar(id, justificativa, autenticacao.getName()),
-                "Chamado recusado.", "/atendente/chamados/" + id, redirectAttributes);
+                "Chamado recusado.", "/atendente/chamados/" + id + "?secao=informacoes", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/duplicado")
@@ -342,7 +417,7 @@ public class ChamadoController {
                                   RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.marcarDuplicado(id, protocoloOriginal, autenticacao.getName()),
-                "Chamado vinculado ao original.", "/atendente/chamados/" + id, redirectAttributes);
+                "Chamado vinculado ao original.", "/atendente/chamados/" + id + "?secao=informacoes", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/solicitar-informacoes")
@@ -352,7 +427,7 @@ public class ChamadoController {
                                        RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.solicitarInformacoes(id, solicitacao, autenticacao.getName()),
-                "Informacoes solicitadas ao cidadao.", "/atendente/chamados/" + id, redirectAttributes);
+                "Informacoes solicitadas ao cidadao.", "/atendente/chamados/" + id + "?secao=comunicacao", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/retomar")
@@ -362,7 +437,7 @@ public class ChamadoController {
                                  RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.retomarPendente(id, funcionarioId, autenticacao.getName()),
-                "Chamado retomado.", "/atendente/chamados/" + id, redirectAttributes);
+                "Chamado retomado.", "/atendente/chamados/" + id + "?secao=impedimento", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/aprovar-conclusao")
@@ -371,7 +446,7 @@ public class ChamadoController {
                                    RedirectAttributes redirectAttributes) {
         return executarAcao(
                 () -> chamadoAtendenteService.aprovarConclusao(id, autenticacao.getName()),
-                "Conclusao aprovada.", "/atendente/chamados/" + id, redirectAttributes);
+                "Conclusao aprovada.", "/atendente/chamados/" + id + "?secao=conclusao", redirectAttributes);
     }
 
     @PostMapping("/atendente/chamados/{id}/reprovar-conclusao")
@@ -383,7 +458,7 @@ public class ChamadoController {
         return executarAcao(
                 () -> chamadoAtendenteService.reprovarConclusao(id, justificativa, novoFuncionarioId,
                         autenticacao.getName()),
-                "Execucao devolvida para nova tentativa.", "/atendente/chamados/" + id, redirectAttributes);
+                "Execucao devolvida para nova tentativa.", "/atendente/chamados/" + id + "?secao=conclusao", redirectAttributes);
     }
 
     // ======================= METODOS AUXILIARES =======================

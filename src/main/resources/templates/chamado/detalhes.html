@@ -9,7 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamado-detalhes.css}" href="/css/chamado-detalhes.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    <link th:if="${secao == 'informacoes'}" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body class="home-page citizen-detail-page">
@@ -40,237 +40,17 @@
     </header>
 
     <main id="conteudo" class="home-container citizen-detail-main">
-        <nav class="citizen-detail-breadcrumb" aria-label="Caminho de navegação">
-            <a th:href="@{/}" href="/">Início</a>
-            <span aria-hidden="true">/</span>
-            <a th:href="@{/chamados}" href="/chamados">Meus chamados</a>
-            <span aria-hidden="true">/</span>
-            <span aria-current="page" th:text="${chamado.protocolo}">2026-000015</span>
-        </nav>
-
-        <div class="citizen-detail-heading">
-            <div class="citizen-detail-heading-copy">
-                <p class="citizen-detail-kicker">DETALHES DA SOLICITAÇÃO</p>
-                <span class="citizen-detail-protocol" th:text="|Protocolo ${chamado.protocolo}|">Protocolo 2026-000015</span>
-                <h1 th:text="${chamado.titulo}">Buraco na Rua das Flores</h1>
-                <p>Consulte o andamento do atendimento, as informações registradas e as evidências da ocorrência.</p>
-            </div>
-            <a class="citizen-detail-back" th:href="@{/chamados}" href="/chamados">
-                <span aria-hidden="true">←</span> Voltar aos chamados
-            </a>
+        <div class="citizen-detail-topline">
+            <a class="citizen-detail-back" th:href="@{/chamados}" href="/chamados">← Voltar aos meus chamados</a>
+            <span>Detalhes da solicitação</span>
         </div>
 
-        <p class="alert alert-success citizen-detail-alert" role="status"
-           th:if="${mensagemSucesso}" th:text="${mensagemSucesso}">Operação realizada.</p>
-        <p class="alert alert-danger citizen-detail-alert" role="alert"
-           th:if="${mensagemErro}" th:text="${mensagemErro}">Não foi possível concluir a operação.</p>
-
-        <div class="citizen-detail-notice citizen-detail-notice--action" role="status"
-             th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
-            <span class="citizen-detail-notice-icon" aria-hidden="true">!</span>
-            <div>
-                <strong>A prefeitura precisa de mais informações</strong>
-                <p>Confira a solicitação em “Atualizações do chamado” e envie sua resposta no painel “Ações disponíveis”.</p>
-            </div>
-        </div>
-        <div class="citizen-detail-notice" th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
-            <span class="citizen-detail-notice-icon" aria-hidden="true">i</span>
-            <div>
-                <strong>Conclusão em análise</strong>
-                <p>A equipe está verificando o resultado do serviço. A fotografia da solução será disponibilizada após a aprovação.</p>
-            </div>
-        </div>
-        <div class="citizen-detail-notice citizen-detail-notice--success"
-             th:if="${chamado.status.name() == 'RESOLVIDO'}">
-            <span class="citizen-detail-notice-icon" aria-hidden="true">✓</span>
-            <div>
-                <strong>Chamado resolvido</strong>
-                <p>A conclusão foi aprovada pela prefeitura. Você pode consultar as evidências finais na seção de fotografias.</p>
-            </div>
-        </div>
-
-        <div class="citizen-detail-layout">
-            <!-- Conteúdo principal: dados e acompanhamento, sem ações administrativas. -->
-            <div class="citizen-detail-content">
-                <section class="citizen-detail-card" aria-labelledby="titulo-dados">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">REGISTRO</p>
-                            <h2 id="titulo-dados">Informações do chamado</h2>
-                        </div>
-                    </div>
-
-                    <div class="citizen-detail-description">
-                        <h3>Descrição do problema</h3>
-                        <p th:text="${chamado.descricao}">Descrição da ocorrência informada no cadastro.</p>
-                    </div>
-
-                    <dl class="citizen-detail-facts">
-                        <div class="citizen-detail-fact">
-                            <dt>Categoria</dt>
-                            <dd th:text="${chamado.categoria != null ? chamado.categoria.nome : 'Não informada'}">Pavimentação</dd>
-                        </div>
-                        <div class="citizen-detail-fact">
-                            <dt>Urgência informada</dt>
-                            <dd>
-                                <span class="citizen-detail-urgency"
-                                      th:classappend="${'citizen-detail-urgency--' + #strings.toLowerCase(chamado.urgenciaPercebida.name())}"
-                                      th:switch="${chamado.urgenciaPercebida.name()}">
-                                    <span th:case="'BAIXA'">Baixa</span>
-                                    <span th:case="'MEDIA'">Média</span>
-                                    <span th:case="'ALTA'">Alta</span>
-                                    <span th:case="'CRITICA'">Crítica</span>
-                                    <span th:case="*" th:text="${chamado.urgenciaPercebida}">Média</span>
-                                </span>
-                            </dd>
-                        </div>
-                        <div class="citizen-detail-fact">
-                            <dt>Prioridade da prefeitura</dt>
-                            <dd th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial : 'Ainda não definida'}">Ainda não definida</dd>
-                        </div>
-                        <div class="citizen-detail-fact">
-                            <dt>Data de abertura</dt>
-                            <dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</dd>
-                        </div>
-                    </dl>
-                </section>
-
-                <section class="citizen-detail-card" aria-labelledby="titulo-localizacao">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">LOCALIZAÇÃO</p>
-                            <h2 id="titulo-localizacao">Onde fica o problema?</h2>
-                        </div>
-                    </div>
-                    <div class="citizen-detail-address">
-                        <span class="citizen-detail-label">Endereço ou referência</span>
-                        <p th:text="${chamado.endereco != null and !#strings.isEmpty(chamado.endereco) ? chamado.endereco : 'Não informado'}">Rua das Flores, próximo à praça central.</p>
-                    </div>
-                    <div th:if="${chamado.latitude != null and chamado.longitude != null}"
-                         id="mapa-localizacao" class="citizen-detail-map"
-                         th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
-                         role="region" aria-label="Mapa com o ponto informado no chamado"></div>
-                    <p class="citizen-detail-empty" th:if="${chamado.latitude == null or chamado.longitude == null}">
-                        Nenhum ponto foi marcado no mapa. Consulte o endereço informado acima.
-                    </p>
-                    <p class="citizen-detail-coordinates"
-                       th:if="${chamado.latitude != null and chamado.longitude != null}">
-                        Coordenadas: <span th:text="${chamado.latitude}">-20.286</span>,
-                        <span th:text="${chamado.longitude}">-50.396</span>
-                    </p>
-                </section>
-
-                <!-- O cidadão acompanha apenas o status do original, sem dados pessoais de terceiros. -->
-                <section class="citizen-detail-card citizen-detail-duplicate"
-                         th:if="${chamado.status.name() == 'DUPLICADO'}" aria-labelledby="titulo-duplicidade">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">ACOMPANHAMENTO</p>
-                            <h2 id="titulo-duplicidade">Ocorrência já registrada</h2>
-                        </div>
-                    </div>
-                    <p>Este chamado foi vinculado a outra ocorrência que já está sendo acompanhada pela prefeitura.</p>
-                    <p th:if="${chamado.chamadoOriginal != null}">
-                        Protocolo da ocorrência original:
-                        <strong th:text="${chamado.chamadoOriginal.protocolo}">2026-000012</strong>
-                    </p>
-                    <p>Andamento da ocorrência original: <strong th:text="${statusAcompanhamento}">Em execução</strong></p>
-                    <p class="citizen-detail-muted">Os dados pessoais do autor da ocorrência original não são exibidos.</p>
-                </section>
-
-                <!-- O controller já filtra os tipos permitidos ao cidadão. -->
-                <section class="citizen-detail-card" th:if="${!#lists.isEmpty(atualizacoes)}"
-                         aria-labelledby="titulo-atualizacoes">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">COMUNICAÇÃO COM A PREFEITURA</p>
-                            <h2 id="titulo-atualizacoes">Atualizações do chamado</h2>
-                            <p>Últimas informações importantes. Todas as movimentações de status permanecem no histórico.</p>
-                        </div>
-                    </div>
-                    <div class="citizen-detail-update-list">
-                        <article class="citizen-detail-update" th:each="atualizacao : ${atualizacoes}">
-                            <div class="citizen-detail-update-mark" aria-hidden="true"></div>
-                            <div class="citizen-detail-update-body">
-                                <h3 th:text="${atualizacao.titulo}">Informações solicitadas</h3>
-                                <p th:text="${atualizacao.texto}">Favor confirmar a localização da ocorrência.</p>
-                                <time th:if="${atualizacao.dataHora != null}"
-                                      th:text="${#temporals.format(atualizacao.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:30</time>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="citizen-detail-card" aria-labelledby="titulo-fotos">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">EVIDÊNCIAS</p>
-                            <h2 id="titulo-fotos">Fotografias registradas</h2>
-                            <p>Fotos da ocorrência e, após a aprovação, o resultado final do serviço.</p>
-                        </div>
-                        <span class="citizen-detail-count" th:text="|${#lists.size(fotos)} foto(s)|">2 fotos</span>
-                    </div>
-                    <p class="citizen-detail-photo-note"
-                       th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
-                        As fotografias da solução serão exibidas após a aprovação da conclusão pelo atendente.
-                    </p>
-                    <p class="citizen-detail-empty" th:if="${#lists.isEmpty(fotos)}">
-                        Nenhuma fotografia disponível para visualização.
-                    </p>
-                    <ul class="citizen-detail-photo-grid" th:unless="${#lists.isEmpty(fotos)}">
-                        <li class="citizen-detail-photo" th:each="foto : ${fotos}">
-                            <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                               href="#" target="_blank" rel="noopener noreferrer"
-                               th:aria-label="${foto.tipo.name() == 'PROBLEMA' ? 'Abrir fotografia do problema' : 'Abrir fotografia da solução'}">
-                                <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                                     src="" th:alt="${foto.tipo.name() == 'PROBLEMA' ? 'Fotografia do problema' : 'Fotografia da solução'}"
-                                     loading="lazy" width="480" height="290">
-                            </a>
-                            <div class="citizen-detail-photo-meta">
-                                <strong th:text="${foto.tipo.name() == 'PROBLEMA' ? 'Foto do problema' : 'Foto da solução'}">Foto do problema</strong>
-                                <span th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</span>
-                            </div>
-                        </li>
-                    </ul>
-                </section>
-
-                <!-- Histórico simplificado: propositalmente SEM a coluna de descrição. -->
-                <section class="citizen-detail-card" aria-labelledby="titulo-historico">
-                    <div class="citizen-detail-section-heading">
-                        <div>
-                            <p class="citizen-detail-eyebrow">RASTREABILIDADE</p>
-                            <h2 id="titulo-historico">Histórico do chamado</h2>
-                            <p>Registro cronológico das mudanças de situação.</p>
-                        </div>
-                    </div>
-                    <p class="citizen-detail-empty" th:if="${#lists.isEmpty(historico)}">Nenhuma movimentação registrada.</p>
-                    <div class="citizen-detail-history-scroll" th:unless="${#lists.isEmpty(historico)}">
-                        <table class="citizen-detail-history">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Data e hora</th>
-                                    <th scope="col">Situação anterior</th>
-                                    <th scope="col">Nova situação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="registro : ${historico}">
-                                    <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</td>
-                                    <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}">ENVIADO</td>
-                                    <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}">ABERTO</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-
-            <aside class="citizen-detail-sidebar" aria-label="Acompanhamento e ações disponíveis">
-                <section class="citizen-detail-card citizen-detail-summary" aria-labelledby="titulo-situacao">
-                    <p class="citizen-detail-eyebrow">ACOMPANHAMENTO</p>
-                    <h2 id="titulo-situacao">Situação atual</h2>
-                    <div class="citizen-detail-current">
-                        <span class="home-status citizen-detail-status"
+        <!-- Resumo compacto comum às quatro seções. -->
+        <header class="citizen-detail-hero">
+            <p class="citizen-detail-kicker">CHAMADO <span th:text="${chamado.protocolo}">2026-000015</span></p>
+            <h1 th:text="${chamado.titulo}">Buraco na Rua das Flores</h1>
+            <div class="citizen-detail-hero-tags">
+                <span class="home-status citizen-detail-status"
                               th:classappend="${'home-status--' + #strings.toLowerCase(#strings.replace(chamado.status.name(), '_', '-'))}"
                               th:switch="${chamado.status.name()}">
                             <span th:case="'ENVIADO'">Enviado</span>
@@ -286,86 +66,288 @@
                             <span th:case="'DUPLICADO'">Duplicado</span>
                             <span th:case="*" th:text="${chamado.status}">Situação atual</span>
                         </span>
-                    </div>
-                    <dl class="citizen-detail-summary-dates">
-                        <div>
-                            <dt>Aberto em</dt>
-                            <dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</dd>
+                <span class="citizen-detail-chip" th:text="${chamado.categoria != null ? chamado.categoria.nome : 'Sem categoria'}">Pavimentação</span>
+                <span class="citizen-detail-chip" th:if="${chamado.prioridadeOficial != null}"
+                      th:text="'Prioridade: ' + ${chamado.prioridadeOficial}">Prioridade: ALTA</span>
+            </div>
+        </header>
+
+        <p class="alert alert-success citizen-detail-alert" role="status"
+           th:if="${mensagemSucesso}" th:text="${mensagemSucesso}">Operação realizada.</p>
+        <p class="alert alert-danger citizen-detail-alert" role="alert"
+           th:if="${mensagemErro}" th:text="${mensagemErro}">Não foi possível concluir a operação.</p>
+
+        <nav class="citizen-detail-tabs" aria-label="Seções deste chamado">
+            <a th:href="@{/chamados/{id}(id=${chamado.id},secao='informacoes')}"
+               th:classappend="${secao == 'informacoes' ? ' is-active' : ''}"
+               th:attr="aria-current=${secao == 'informacoes' ? 'page' : null}">Informações</a>
+            <a th:href="@{/chamados/{id}(id=${chamado.id},secao='comunicacao')}"
+               th:classappend="${secao == 'comunicacao' ? ' is-active' : ''}"
+               th:attr="aria-current=${secao == 'comunicacao' ? 'page' : null}">Comunicação</a>
+            <a th:href="@{/chamados/{id}(id=${chamado.id},secao='conclusao')}"
+               th:classappend="${secao == 'conclusao' ? ' is-active' : ''}"
+               th:attr="aria-current=${secao == 'conclusao' ? 'page' : null}">Conclusão</a>
+            <a th:href="@{/chamados/{id}(id=${chamado.id},secao='historico')}"
+               th:classappend="${secao == 'historico' ? ' is-active' : ''}"
+               th:attr="aria-current=${secao == 'historico' ? 'page' : null}">Histórico</a>
+        </nav>
+
+        <!-- INFORMAÇÕES: somente dados da ocorrência, mapa, fotos iniciais e ações do cidadão. -->
+        <div class="citizen-detail-section" th:if="${secao == 'informacoes'}">
+            <div class="citizen-detail-section-intro">
+                <h2>Informações do chamado</h2>
+                <p>Dados da ocorrência, localização e fotografias do problema.</p>
+            </div>
+            <section class="citizen-detail-card" aria-labelledby="titulo-dados">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">OCORRÊNCIA</p>
+                    <h2 id="titulo-dados">Dados do chamado</h2>
+                </div></div>
+                <div class="citizen-detail-description">
+                    <h3>Descrição do problema</h3>
+                    <p th:text="${chamado.descricao}">Descrição da ocorrência informada no cadastro.</p>
+                </div>
+                <dl class="citizen-detail-facts">
+                    <div class="citizen-detail-fact"><dt>Categoria</dt>
+                        <dd th:text="${chamado.categoria != null ? chamado.categoria.nome : 'Não informada'}">Pavimentação</dd></div>
+                    <div class="citizen-detail-fact"><dt>Urgência informada</dt>
+                        <dd th:text="${chamado.urgenciaPercebida}">MÉDIA</dd></div>
+                    <div class="citizen-detail-fact"><dt>Prioridade da prefeitura</dt>
+                        <dd th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial : 'Ainda não definida'}">Ainda não definida</dd></div>
+                    <div class="citizen-detail-fact"><dt>Registrado em</dt>
+                        <dd th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</dd></div>
+                    <div class="citizen-detail-fact"><dt>Concluído em</dt>
+                        <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Ainda não concluído'}">Ainda não concluído</dd></div>
+                </dl>
+            </section>
+
+            <section class="citizen-detail-card" aria-labelledby="titulo-localizacao">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">LOCALIZAÇÃO</p>
+                    <h2 id="titulo-localizacao">Onde fica o problema?</h2>
+                </div></div>
+                <div class="citizen-detail-address"><span class="citizen-detail-label">Endereço ou referência</span>
+                    <p th:text="${chamado.endereco != null and !#strings.isEmpty(chamado.endereco) ? chamado.endereco : 'Não informado'}">Rua das Flores, centro.</p>
+                </div>
+                <div th:if="${chamado.latitude != null and chamado.longitude != null}"
+                     id="mapa-localizacao" class="citizen-detail-map"
+                     th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
+                     role="region" aria-label="Mapa com o ponto informado no chamado"></div>
+                <p class="citizen-detail-empty" th:if="${chamado.latitude == null or chamado.longitude == null}">
+                    Nenhum ponto foi marcado no mapa. Consulte o endereço informado acima.
+                </p>
+                <p class="citizen-detail-coordinates" th:if="${chamado.latitude != null and chamado.longitude != null}">
+                    Coordenadas: <span th:text="${chamado.latitude}">-20.286</span>,
+                    <span th:text="${chamado.longitude}">-50.396</span>
+                </p>
+            </section>
+
+            <section class="citizen-detail-card citizen-detail-duplicate" th:if="${chamado.status.name() == 'DUPLICADO'}"
+                     aria-labelledby="titulo-duplicidade">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">ACOMPANHAMENTO</p>
+                    <h2 id="titulo-duplicidade">Ocorrência já registrada</h2>
+                </div></div>
+                <p>Este chamado foi vinculado a uma ocorrência já acompanhada pela prefeitura.</p>
+                <p th:if="${chamado.chamadoOriginal != null}">Protocolo original:
+                    <strong th:text="${chamado.chamadoOriginal.protocolo}">2026-000012</strong></p>
+                <p>Andamento da ocorrência original: <strong th:text="${statusAcompanhamento}">Em execução</strong></p>
+                <p class="citizen-detail-muted">Os dados pessoais de outros cidadãos não são exibidos.</p>
+            </section>
+
+            <section class="citizen-detail-card" th:if="${chamado.status.name() == 'CANCELADO' or chamado.status.name() == 'RECUSADO'}"
+                     aria-labelledby="titulo-justificativa">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">ENCERRAMENTO</p>
+                    <h2 id="titulo-justificativa">Justificativa do encerramento</h2>
+                </div></div>
+                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(justificativas)}">Nenhuma justificativa registrada neste formato.</p>
+                <div class="citizen-detail-update-list" th:unless="${#lists.isEmpty(justificativas)}">
+                    <article class="citizen-detail-update" th:each="item : ${justificativas}">
+                        <div class="citizen-detail-update-mark" aria-hidden="true"></div>
+                        <div class="citizen-detail-update-body">
+                            <h3 th:text="${item.titulo}">Justificativa do cancelamento</h3>
+                            <p th:text="${item.texto}">Motivo apresentado.</p>
+                            <time th:text="${#temporals.format(item.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:00</time>
                         </div>
-                        <div>
-                            <dt>Concluído em</dt>
-                            <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Ainda não concluído'}">Ainda não concluído</dd>
+                    </article>
+                </div>
+            </section>
+
+            <section class="citizen-detail-card" aria-labelledby="titulo-fotos-problema">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">FOTOGRAFIAS INICIAIS</p>
+                    <h2 id="titulo-fotos-problema">Fotos do problema</h2>
+                    <p>Imagens enviadas pelo cidadão para mostrar a ocorrência.</p>
+                </div><span class="citizen-detail-count" th:text="${#lists.size(fotos)} + ' foto(s)'">2 fotos</span></div>
+                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia do problema registrada.</p>
+                <ul class="citizen-detail-photo-grid" th:unless="${#lists.isEmpty(fotos)}">
+                    <li class="citizen-detail-photo" th:each="foto : ${fotos}">
+                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                           target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia do problema">
+                            <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                                 alt="Fotografia do problema" loading="lazy" width="480" height="290">
+                        </a>
+                        <div class="citizen-detail-photo-meta"><strong>Foto do problema</strong>
+                            <span th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</span>
                         </div>
-                    </dl>
-                </section>
-
-                <section class="citizen-detail-card citizen-detail-actions" aria-labelledby="titulo-acoes">
-                    <p class="citizen-detail-eyebrow">QUANDO NECESSÁRIO</p>
-                    <h2 id="titulo-acoes">Ações disponíveis</h2>
-                    <p class="citizen-detail-actions-intro">As opções exibidas dependem da situação do chamado.</p>
-
-                    <div class="citizen-detail-action-block"
-                         th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
-                        <h3>Responder à prefeitura</h3>
-                        <p>Confira o pedido na seção de atualizações e envie os detalhes solicitados.</p>
-                        <form th:action="@{/chamados/{id}/complementar(id=${chamado.id})}"
-                              action="#" method="post">
-                            <label for="resposta">Informações complementares</label>
-                            <textarea id="resposta" name="resposta" maxlength="1700" rows="5" required
-                                      placeholder="Escreva aqui sua resposta..."></textarea>
-                            <button class="citizen-detail-submit" type="submit">Enviar informações</button>
-                        </form>
-                    </div>
-
-                    <div class="citizen-detail-action-block"
-                         th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
-                        <h3>Adicionar foto do problema</h3>
-                        <p>Opcional. Você pode incluir uma fotografia para ajudar na análise.</p>
-                        <form th:action="@{/chamados/{id}/fotos(id=${chamado.id})}"
-                              action="#" method="post" enctype="multipart/form-data">
+                    </li>
+                </ul>
+                <details class="citizen-detail-accordion" th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+                    <summary>Adicionar fotografia do problema</summary>
+                    <div class="citizen-detail-accordion-body citizen-detail-action-block">
+                        <p>Opcional. Envie uma fotografia para ajudar na análise.</p>
+                        <form th:action="@{/chamados/{id}/fotos(id=${chamado.id})}" method="post" enctype="multipart/form-data">
                             <label for="arquivo">Fotografia (JPG, PNG ou WebP — até 5 MB)</label>
-                            <input type="file" id="arquivo" name="arquivo"
-                                   accept="image/jpeg,image/png,image/webp" required>
+                            <input type="file" id="arquivo" name="arquivo" accept="image/jpeg,image/png,image/webp" required>
                             <button class="citizen-detail-submit" type="submit">Enviar fotografia</button>
                         </form>
                     </div>
+                </details>
+            </section>
 
-                    <details class="citizen-detail-cancel"
-                             th:if="${chamado.primeiroInicioExecucao == null and
-                                     (chamado.status.name() == 'ENVIADO' or
-                                      chamado.status.name() == 'AGUARDANDO_INFORMACOES' or
-                                      chamado.status.name() == 'ABERTO' or
-                                      chamado.status.name() == 'ATRIBUIDO')}">
-                        <summary>Precisa cancelar este chamado?</summary>
-                        <div class="citizen-detail-cancel-body">
-                            <p>O cancelamento só é permitido antes do primeiro início da execução.</p>
-                            <form th:action="@{/chamados/{id}/cancelar(id=${chamado.id})}" action="#" method="post">
-                                <label for="justificativaCancelamento">Justificativa do cancelamento</label>
-                                <textarea id="justificativaCancelamento" name="justificativa"
-                                          rows="3" maxlength="1700" required
-                                          placeholder="Explique o motivo do cancelamento..."></textarea>
-                                <button class="citizen-detail-danger" type="submit">Confirmar cancelamento</button>
-                            </form>
+            <section class="citizen-detail-card citizen-detail-actions" th:if="${chamado.primeiroInicioExecucao == null and
+                     (chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES' or
+                      chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO')}"
+                     aria-labelledby="titulo-cancelar">
+                <p class="citizen-detail-eyebrow">QUANDO NECESSÁRIO</p>
+                <h2 id="titulo-cancelar">Cancelar chamado</h2>
+                <p class="citizen-detail-actions-intro">O cancelamento só é permitido antes do primeiro início da execução.</p>
+                <details class="citizen-detail-cancel">
+                    <summary>Solicitar cancelamento deste chamado</summary>
+                    <div class="citizen-detail-cancel-body">
+                        <form th:action="@{/chamados/{id}/cancelar(id=${chamado.id})}" method="post">
+                            <label for="justificativaCancelamento">Justificativa do cancelamento</label>
+                            <textarea id="justificativaCancelamento" name="justificativa" rows="3" maxlength="1700" required
+                                      placeholder="Explique o motivo do cancelamento..."></textarea>
+                            <button class="citizen-detail-danger" type="submit">Confirmar cancelamento</button>
+                        </form>
+                    </div>
+                </details>
+            </section>
+        </div>
+
+        <!-- COMUNICAÇÃO: apenas as mensagens cidadão ↔ atendente. -->
+        <div class="citizen-detail-section" th:if="${secao == 'comunicacao'}">
+            <div class="citizen-detail-section-intro">
+                <h2>Comunicação com a prefeitura</h2>
+                <p>Solicitações de esclarecimento e respostas sobre este chamado.</p>
+            </div>
+            <div class="citizen-detail-notice citizen-detail-notice--action" role="status"
+                 th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+                <span class="citizen-detail-notice-icon" aria-hidden="true">!</span>
+                <div><strong>A prefeitura está aguardando sua resposta</strong>
+                    <p>Confira a solicitação abaixo e envie as informações pedidas.</p></div>
+            </div>
+            <section class="citizen-detail-card" aria-labelledby="titulo-mensagens">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">MENSAGENS</p>
+                    <h2 id="titulo-mensagens">Pedidos e respostas</h2>
+                </div></div>
+                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(interacoes)}">Ainda não houve pedido de informações ou resposta complementar.</p>
+                <div class="citizen-detail-update-list" th:unless="${#lists.isEmpty(interacoes)}">
+                    <article class="citizen-detail-update" th:each="item : ${interacoes}"
+                             th:classappend="${item.tipo.name() == 'RESPOSTA_INFORMACOES' ? ' citizen-detail-update--reply' : ''}">
+                        <div class="citizen-detail-update-mark" aria-hidden="true"></div>
+                        <div class="citizen-detail-update-body">
+                            <h3 th:text="${item.titulo}">Informações solicitadas</h3>
+                            <p th:text="${item.texto}">Favor confirmar a localização.</p>
+                            <time th:text="${#temporals.format(item.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:30</time>
                         </div>
-                    </details>
+                    </article>
+                </div>
+            </section>
+            <section class="citizen-detail-card citizen-detail-actions" th:if="${chamado.status.name() == 'AGUARDANDO_INFORMACOES'}"
+                     aria-labelledby="titulo-resposta">
+                <p class="citizen-detail-eyebrow">SUA VEZ DE RESPONDER</p>
+                <h2 id="titulo-resposta">Enviar informações</h2>
+                <p class="citizen-detail-actions-intro">Responda ao pedido da prefeitura; isso permitirá que o atendimento continue.</p>
+                <div class="citizen-detail-action-block">
+                    <form th:action="@{/chamados/{id}/complementar(id=${chamado.id})}" method="post">
+                        <label for="resposta">Informações complementares</label>
+                        <textarea id="resposta" name="resposta" rows="5" maxlength="1700" required
+                                  placeholder="Escreva aqui sua resposta..."></textarea>
+                        <button class="citizen-detail-submit" type="submit">Enviar informações</button>
+                    </form>
+                </div>
+            </section>
+        </div>
 
-                    <p class="citizen-detail-actions-empty"
-                       th:if="${chamado.status.name() != 'AGUARDANDO_INFORMACOES' and
-                               chamado.status.name() != 'ENVIADO' and
-                               (chamado.primeiroInicioExecucao != null or
-                               (chamado.status.name() != 'ABERTO' and chamado.status.name() != 'ATRIBUIDO'))}">
-                        Nenhuma ação disponível no momento. Acompanhe as atualizações desta página.
-                    </p>
-                </section>
-            </aside>
+        <!-- CONCLUSÃO: só a foto final aprovada, nunca tentativas reprovadas. -->
+        <div class="citizen-detail-section" th:if="${secao == 'conclusao'}">
+            <div class="citizen-detail-section-intro">
+                <h2>Conclusão do chamado</h2>
+                <p>Resultado final aprovado pela prefeitura.</p>
+            </div>
+            <div class="citizen-detail-notice" th:if="${chamado.status.name() == 'AGUARDANDO_VALIDACAO'}">
+                <span class="citizen-detail-notice-icon" aria-hidden="true">i</span>
+                <div><strong>Conclusão em análise</strong>
+                    <p>A prefeitura está avaliando o serviço. A foto da solução ficará visível após a aprovação.</p></div>
+            </div>
+            <div class="citizen-detail-notice citizen-detail-notice--success" th:if="${chamado.status.name() == 'RESOLVIDO'}">
+                <span class="citizen-detail-notice-icon" aria-hidden="true">✓</span>
+                <div><strong>Chamado resolvido</strong>
+                    <p>O atendimento foi aprovado em
+                       <span th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'data não informada'}">01/11/2026 14:00</span>.</p>
+                </div>
+            </div>
+            <section class="citizen-detail-card" aria-labelledby="titulo-solucao">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">RESULTADO FINAL</p>
+                    <h2 id="titulo-solucao">Fotografia da solução</h2>
+                    <p>Somente a fotografia da última conclusão aprovada é exibida.</p>
+                </div></div>
+                <p class="citizen-detail-empty" th:if="${chamado.status.name() != 'RESOLVIDO'}">
+                    A fotografia da solução será exibida quando a prefeitura aprovar a conclusão do chamado.
+                </p>
+                <p class="citizen-detail-empty" th:if="${chamado.status.name() == 'RESOLVIDO' and #lists.isEmpty(fotos)}">
+                    Nenhuma fotografia final disponível para visualização.
+                </p>
+                <ul class="citizen-detail-photo-grid" th:if="${chamado.status.name() == 'RESOLVIDO' and !#lists.isEmpty(fotos)}">
+                    <li class="citizen-detail-photo" th:each="foto : ${fotos}">
+                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                           target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia da solução aprovada">
+                            <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
+                                 alt="Fotografia final aprovada" loading="lazy" width="480" height="290">
+                        </a>
+                        <div class="citizen-detail-photo-meta"><strong>Conclusão aprovada</strong>
+                            <span th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}">01/11/2026 14:00</span>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- HISTÓRICO: preserva só as três colunas aprovadas pelo usuário. -->
+        <div class="citizen-detail-section" th:if="${secao == 'historico'}">
+            <div class="citizen-detail-section-intro">
+                <h2>Histórico do chamado</h2>
+                <p>Mudanças de situação registradas ao longo do atendimento.</p>
+            </div>
+            <section class="citizen-detail-card" aria-labelledby="titulo-historico">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">RASTREABILIDADE</p>
+                    <h2 id="titulo-historico">Movimentações</h2>
+                </div></div>
+                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(historico)}">Nenhuma movimentação registrada.</p>
+                <div class="citizen-detail-history-scroll" th:unless="${#lists.isEmpty(historico)}">
+                    <table class="citizen-detail-history">
+                        <thead><tr><th scope="col">Data e hora</th><th scope="col">Situação anterior</th><th scope="col">Nova situação</th></tr></thead>
+                        <tbody><tr th:each="registro : ${historico}">
+                            <td th:text="${#temporals.format(registro.dataHora, 'dd/MM/yyyy HH:mm')}">01/11/2026 09:00</td>
+                            <td th:text="${registro.statusAnterior != null ? registro.statusAnterior : '-'}">ENVIADO</td>
+                            <td th:text="${registro.statusNovo != null ? registro.statusNovo : '-'}">ABERTO</td>
+                        </tr></tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </main>
-
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Comunicação entre cidadão e prefeitura</footer>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    <script th:if="${secao == 'informacoes'}" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script>
+    <script th:if="${secao == 'informacoes'}">
         (function () {
             const elemento = document.getElementById('mapa-localizacao');
             if (!elemento) return;
