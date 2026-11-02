@@ -12,33 +12,41 @@ import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 
-
 @Repository
 public interface ChamadoRepository extends JpaRepository<Chamado, Long>, JpaSpecificationExecutor<Chamado> {
 
-    List<Chamado> findAllByOrderByDataCriacaoDesc();
+        List<Chamado> findAllByOrderByDataCriacaoDesc();
 
-    List<Chamado> findByCidadaoIdOrderByDataCriacaoDesc(Long cidadaoId);
+        List<Chamado> findByCidadaoIdOrderByDataCriacaoDesc(Long cidadaoId);
 
-    List<Chamado> findByFuncionarioResponsavelIdOrderByDataCriacaoDesc(Long funcionarioId);
+        List<Chamado> findByFuncionarioResponsavelIdOrderByDataCriacaoDesc(Long funcionarioId);
 
-    List<Chamado> findByStatusOrderByDataCriacaoDesc(StatusChamado status);
+        List<Chamado> findByStatusOrderByDataCriacaoDesc(StatusChamado status);
 
-    List<Chamado> findByPrioridadeOficialOrderByDataCriacaoDesc(Prioridade prioridade);
+        List<Chamado> findByPrioridadeOficialOrderByDataCriacaoDesc(Prioridade prioridade);
 
-    List<Chamado> findByCategoriaIdOrderByDataCriacaoDesc(Long categoriaId);
+        List<Chamado> findByCategoriaIdOrderByDataCriacaoDesc(Long categoriaId);
 
-    boolean existsByChamadoOriginalId(Long originalId);
+        boolean existsByChamadoOriginalId(Long originalId);
 
-    // Impede trocar o setor de uma categoria com servicos ainda atribuidos/em andamento.
-    boolean existsByCategoriaIdAndStatusIn(Long categoriaId, Collection<StatusChamado> status);
+        Optional<Chamado> findByProtocolo(String protocolo);
 
-    Optional<Chamado> findByProtocolo(String protocolo);
+        boolean existsByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
 
-    boolean existsByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
+        boolean existsByFuncionarioResponsavelIdAndStatusIn(
+                        Long funcionarioId, Collection<StatusChamado> status);
 
-    boolean existsByFuncionarioResponsavelIdAndStatusIn(
-            Long funcionarioId, Collection<StatusChamado> status);
+        boolean existsByCategoriaIdAndStatusIn(
+                        Long categoriaId,
+                        Collection<StatusChamado> status);
 
-    List<Chamado> findByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
+        List<Chamado> findByFuncionarioResponsavelIdAndStatus(Long funcionarioId, StatusChamado status);
+
+        // Consulta apenas os chamados da fila, sem carregar os concluidos.
+        List<Chamado> findByFuncionarioResponsavelIdAndStatusInOrderByDataCriacaoDesc(
+                        Long funcionarioId, Collection<StatusChamado> status);
+
+        // Historico ordenado pela data da aprovacao do atendente.
+        List<Chamado> findByFuncionarioResponsavelIdAndStatusOrderByDataConclusaoDesc(
+                        Long funcionarioId, StatusChamado status);
 }

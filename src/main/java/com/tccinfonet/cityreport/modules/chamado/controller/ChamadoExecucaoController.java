@@ -55,6 +55,28 @@ public class ChamadoExecucaoController {
                 .toList();
     }
 
+    // A home nao consulta a fila nem o historico completo.
+    // 204 No Content indica que o funcionario nao possui atendimento em execucao.
+    @GetMapping("/em-execucao")
+    public ResponseEntity<ChamadoResponseDTO> emExecucao(Authentication autenticacao) {
+        return chamadoExecucaoService.buscarEmExecucao(autenticacao.getName())
+                .map(ChamadoResponseDTO::de)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/atribuidos")
+    public List<ChamadoResponseDTO> atribuidos(Authentication autenticacao) {
+        return chamadoExecucaoService.listarAtribuidos(autenticacao.getName())
+                .stream().map(ChamadoResponseDTO::de).toList();
+    }
+
+    @GetMapping("/concluidos")
+    public List<ChamadoResponseDTO> concluidos(Authentication autenticacao) {
+        return chamadoExecucaoService.listarConcluidos(autenticacao.getName())
+                .stream().map(ChamadoResponseDTO::de).toList();
+    }
+
     // GET /api/chamados/{id}
     @GetMapping("/{id}")
     public ChamadoResponseDTO detalhes(@PathVariable Long id, Authentication autenticacao) {

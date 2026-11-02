@@ -1,8 +1,10 @@
 package com.tccinfonet.cityreport.modules.chamado.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +15,7 @@ import com.tccinfonet.cityreport.modules.chamado._historico_chamado.enums.TipoAt
 import com.tccinfonet.cityreport.modules.chamado._historico_chamado.service.HistoricoChamadoService;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
+import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.repository.ChamadoRepository;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;
@@ -38,6 +41,47 @@ public class ChamadoExecucaoService {
     public List<Chamado> listarDoFuncionario(String emailAutenticado) {
         Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
         return chamadoRepository.findByFuncionarioResponsavelIdOrderByDataCriacaoDesc(funcionario.getId());
+    }
+
+    // A tela inicial busca somente o chamado atual, nunca a fila inteira.
+    public Optional<Chamado> buscarEmExecucao(String emailAutenticado) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
+        return chamadoRepository.findByFuncionarioResponsavelIdAndStatus(
+                funcionario.getId(), StatusChamado.EM_EXECUCAO).stream().findFirst();
+    }
+
+    // Fila exclusiva do funcionario, organizada pela prioridade definida pelo atendente.
+    // Aguardando validacao ainda nao e RESOLVIDO; impedidos continuam na fila.
+    public List<Chamado> listarAtribuidos(String emailAutenticado) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
+        // A ordenacao por criacao vem do banco; o sorted() e estavel e mantem
+        // as datas na mesma prioridade, sem precisar alterar a entidade.
+        return chamadoRepository.findByFuncionarioResponsavelIdAndStatusInOrderByDataCriacaoDesc(
+                        funcionario.getId(), List.of(
+                                StatusChamado.ATRIBUIDO,
+                                StatusChamado.PENDENTE,
+                                StatusChamado.AGUARDANDO_VALIDACAO))
+                .stream()
+                .sorted(Comparator.comparingInt(c -> ordemPrioridade(c.getPrioridadeOficial())))
+                .toList();
+    }
+
+    // Consulta separada; chamada apenas quando a tela Concluidos e aberta.
+    // O responsavel mantido na aprovacao e o funcionario que finalizou o servico.
+    public List<Chamado> listarConcluidos(String emailAutenticado) {
+        Usuario funcionario = buscarFuncionarioAutenticado(emailAutenticado);
+        return chamadoRepository.findByFuncionarioResponsavelIdAndStatusOrderByDataConclusaoDesc(
+                funcionario.getId(), StatusChamado.RESOLVIDO);
+    }
+
+    private int ordemPrioridade(Prioridade prioridade) {
+        if (prioridade == null) return 4;
+        return switch (prioridade) {
+            case CRITICA -> 0;
+            case ALTA -> 1;
+            case MEDIA -> 2;
+            case BAIXA -> 3;
+        };
     }
 
     public Chamado buscarDoFuncionario(Long chamadoId, String emailAutenticado) {

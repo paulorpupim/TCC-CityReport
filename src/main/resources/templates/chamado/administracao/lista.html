@@ -92,7 +92,17 @@
             <p class="admin-queue-stage-explanation" th:if="${aba == 'todos'}">Consulta geral, incluindo chamados aguardando informações, duplicados e encerrados.</p>
         </section>
 
-        <section class="admin-queue-card admin-queue-filter-card" aria-labelledby="titulo-filtros">
+        <!-- A tabela e o foco principal; os filtros ficam na barra lateral. -->
+        <div class="admin-queue-workspace">
+        <aside class="admin-queue-card admin-queue-filter-card" aria-labelledby="titulo-filtros">
+            <!-- Sem JavaScript: em telas menores, este controle recolhe o painel. -->
+            <input class="admin-queue-filter-toggle" type="checkbox" id="mostrar-filtros"
+                   th:checked="${filtrosAplicados}">
+            <label class="admin-queue-filter-mobile-trigger" for="mostrar-filtros">
+                <span>Pesquisar e filtrar</span>
+                <span class="admin-queue-filter-chevron" aria-hidden="true">⌄</span>
+            </label>
+            <div class="admin-queue-filter-content">
             <div class="admin-queue-section-heading">
                 <div>
                     <p class="admin-queue-kicker">CONSULTA</p>
@@ -158,7 +168,8 @@
                     <a class="admin-queue-button-clear" th:href="@{/atendente/chamados(aba=${aba})}" href="/atendente/chamados">Limpar filtros</a>
                 </div>
             </form>
-        </section>
+            </div>
+        </aside>
 
         <section class="admin-queue-results" aria-labelledby="titulo-resultados">
             <div class="admin-queue-results-heading">
@@ -200,10 +211,8 @@
                                     <th scope="col">Protocolo</th>
                                     <th scope="col">Título</th>
                                     <th scope="col">Categoria</th>
-                                    <th scope="col">Cidadão</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Responsável</th>
-                                    <th scope="col">Criado em</th>
                                     <th scope="col">Ações</th>
                                 </tr>
                             </thead>
@@ -212,12 +221,10 @@
                                     <td data-label="Protocolo"><span class="admin-queue-protocol" th:text="${chamado.protocolo}">2026-000001</span></td>
                                     <td data-label="Título"><span class="admin-queue-title" th:text="${chamado.titulo}">Ocorrência</span></td>
                                     <td data-label="Categoria" th:text="${chamado.categoria.nome}">Categoria</td>
-                                    <td data-label="Cidadão" th:text="${chamado.cidadao.nome}">Cidadão</td>
                                     <td data-label="Status"><span class="admin-queue-status"
                                         th:classappend="${'admin-queue-status--' + #strings.toLowerCase(chamado.status.name())}"
                                         th:text="${#strings.replace(chamado.status.name(), '_', ' ')}">ENVIADO</span></td>
                                     <td data-label="Responsável" th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}">Não atribuído</td>
-                                    <td data-label="Criado em" th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026</td>
                                     <td data-label="Ações"><a class="admin-queue-row-action" th:href="@{/atendente/chamados/{id}(id=${chamado.id})}" href="#">Analisar <span aria-hidden="true">→</span></a></td>
                                 </tr>
                             </tbody>
@@ -261,9 +268,8 @@
                         <thead>
                             <tr>
                                 <th scope="col">Protocolo</th><th scope="col">Título</th><th scope="col">Categoria</th>
-                                <th scope="col">Cidadão</th><th scope="col">Status</th><th scope="col">Urgência percebida</th>
-                                <th scope="col">Prioridade oficial</th><th scope="col">Responsável</th>
-                                <th scope="col">Criado em</th><th scope="col">Ações</th>
+                                <th scope="col">Status</th><th scope="col">Prioridade oficial</th>
+                                <th scope="col">Responsável</th><th scope="col">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -271,16 +277,11 @@
                                 <td data-label="Protocolo"><span class="admin-queue-protocol" th:text="${chamado.protocolo}">2026-000001</span></td>
                                 <td data-label="Título"><span class="admin-queue-title" th:text="${chamado.titulo}">Ocorrência</span></td>
                                 <td data-label="Categoria" th:text="${chamado.categoria.nome}">Categoria</td>
-                                <td data-label="Cidadão" th:text="${chamado.cidadao.nome}">Cidadão</td>
                                 <td data-label="Status"><span class="admin-queue-status" th:classappend="${'admin-queue-status--' + #strings.toLowerCase(chamado.status.name())}" th:text="${#strings.replace(chamado.status.name(), '_', ' ')}">STATUS</span></td>
-                                <td data-label="Urgência percebida"><span class="admin-queue-priority admin-queue-priority-small"
-                                    th:classappend="${chamado.urgenciaPercebida != null ? 'admin-queue-priority--' + #strings.toLowerCase(chamado.urgenciaPercebida.name()) : 'admin-queue-priority--undefined'}"
-                                    th:text="${chamado.urgenciaPercebida != null ? chamado.urgenciaPercebida.name() : 'Não definida'}">MÉDIA</span></td>
                                 <td data-label="Prioridade oficial"><span class="admin-queue-priority admin-queue-priority-small"
                                     th:classappend="${chamado.prioridadeOficial != null ? 'admin-queue-priority--' + #strings.toLowerCase(chamado.prioridadeOficial.name()) : 'admin-queue-priority--undefined'}"
                                     th:text="${chamado.prioridadeOficial != null ? chamado.prioridadeOficial.name() : 'Não definida'}">MÉDIA</span></td>
                                 <td data-label="Responsável" th:text="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome : 'Não atribuído'}">Não atribuído</td>
-                                <td data-label="Criado em" th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/11/2026</td>
                                 <td data-label="Ações"><a class="admin-queue-row-action" th:href="@{/atendente/chamados/{id}(id=${chamado.id})}" href="#">Analisar <span aria-hidden="true">→</span></a></td>
                             </tr>
                         </tbody>
@@ -288,6 +289,7 @@
                 </div>
             </div>
         </section>
+        </div><!-- /.admin-queue-workspace -->
     </main>
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Central de atendimento</footer>
 </body>
