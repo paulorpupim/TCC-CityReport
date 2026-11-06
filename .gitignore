@@ -35,3 +35,6 @@ build/
 # Ignorar todas as mídias e uploads dos usuários
 uploads/*
 !uploads/.gitkeep
+
+# Credenciais do banco de dados
+/application-secrets.properties
