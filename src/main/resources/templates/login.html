@@ -43,6 +43,9 @@
             <div th:if="${param.emailAtualizado}" class="auth-feedback auth-feedback-info" role="status">
                 E-mail atualizado. Entre novamente com seu novo endereço.
             </div>
+            <div th:if="${param.senhaAtualizada}" class="auth-feedback auth-feedback-success" role="status">
+                Senha alterada com sucesso! Entre novamente usando a nova senha.
+            </div>
 
             <!-- Nomes username e password são exigidos pela configuração atual. -->
             <form class="auth-form" th:action="@{/login}" action="/login" method="post">

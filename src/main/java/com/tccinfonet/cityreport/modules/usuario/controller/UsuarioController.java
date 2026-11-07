@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -26,26 +27,26 @@ import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/atendente/usuarios")
+@RequestMapping("/atendente")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
     private final SetorService setorService;
 
-    @GetMapping
+    @GetMapping("/usuarios")
     public String listar(Model model) {
         model.addAttribute("atendentes", usuarioService.listarPorPerfil(PerfilUsuario.ATENDENTE));
         model.addAttribute("funcionarios", usuarioService.listarPorPerfil(PerfilUsuario.FUNCIONARIO));
         return "usuario/lista";
     }
 
-    @GetMapping("/novo")
+    @GetMapping("/usuarios/novo")
     public String novo(Model model) {
         model.addAttribute("usuarioDTO", new UsuarioRequestDTO());
         return prepararPagina(model, "Cadastrar usuario", "/atendente/usuarios");
     }
 
-    @PostMapping
+    @PostMapping("/usuarios")
     public String cadastrar(@Valid @ModelAttribute("usuarioDTO") UsuarioRequestDTO usuarioDTO,
                             BindingResult resultado,
                             Model model,
@@ -73,7 +74,7 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/{id}/editar")
+    @GetMapping("/usuarios/{id}/editar")
     public String exibirEdicao(@PathVariable Long id, Model model) {
         Usuario usuario = buscarUsuarioInterno(id);
 
@@ -90,7 +91,7 @@ public class UsuarioController {
         return prepararPagina(model, "Editar usuario", "/atendente/usuarios/" + id + "/editar");
     }
 
-    @PostMapping("/{id}/editar")
+    @PostMapping("/usuarios/{id}/editar")
     public String editar(@PathVariable Long id,
                          @Valid @ModelAttribute("usuarioDTO") UsuarioRequestDTO usuarioDTO,
                          BindingResult resultado,
@@ -121,7 +122,7 @@ public class UsuarioController {
         }
     }
 
-    @PostMapping("/{id}/ativar")
+    @PostMapping("/usuarios/{id}/ativar")
     public String ativar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         buscarUsuarioInterno(id);
 
@@ -135,7 +136,7 @@ public class UsuarioController {
         return "redirect:/atendente/usuarios";
     }
 
-    @PostMapping("/{id}/desativar")
+    @PostMapping("/usuarios/{id}/desativar")
     public String desativar(@PathVariable Long id, Authentication autenticacao,
                            RedirectAttributes redirectAttributes) {
         buscarUsuarioInterno(id);
@@ -148,6 +149,41 @@ public class UsuarioController {
         }
 
         return "redirect:/atendente/usuarios";
+    }
+
+
+    // Permite que o atendente altere apenas a senha da propria conta.
+    @GetMapping("/minha-senha")
+    public String exibirAlteracaoSenha(Authentication autenticacao, Model model) {
+        Usuario atendente = usuarioService.buscarPorEmail(autenticacao.getName());
+        model.addAttribute("nomeAtendente", atendente.getNome());
+        model.addAttribute("emailAtendente", atendente.getEmail());
+        return "usuario/minha-senha";
+    }
+
+    @PostMapping("/minha-senha")
+    public String alterarMinhaSenha(@RequestParam String senhaAtual,
+                                    @RequestParam String novaSenha,
+                                    @RequestParam String confirmarNovaSenha,
+                                    Authentication autenticacao,
+                                    RedirectAttributes redirectAttributes) {
+        if (novaSenha == null || !novaSenha.equals(confirmarNovaSenha)) {
+            redirectAttributes.addFlashAttribute("mensagemErro",
+                    "A confirmação não corresponde à nova senha.");
+            return "redirect:/atendente/minha-senha";
+        }
+
+        try {
+            Usuario atendente = usuarioService.buscarPorEmail(autenticacao.getName());
+            usuarioService.alterarSenha(atendente.getId(), senhaAtual, novaSenha);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+            return "redirect:/atendente/minha-senha";
+        }
+
+        // Mantem a sessao web ativa, como na alteracao de senha do cidadao.
+        redirectAttributes.addFlashAttribute("mensagemSucesso", "Senha alterada com sucesso.");
+        return "redirect:/atendente/minha-senha";
     }
 
     private Usuario converterParaUsuario(UsuarioRequestDTO usuarioDTO) {
