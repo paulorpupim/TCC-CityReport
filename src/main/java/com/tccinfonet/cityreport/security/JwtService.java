@@ -1,5 +1,9 @@
 package com.tccinfonet.cityreport.security;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -34,10 +38,23 @@ public class JwtService {
                 .issuedAt(agora)
                 .expiresAt(agora.plus(DURACAO))
                 .claim("perfil", usuario.getPerfil().name())
+                .claim("versaoSenha", versaoSenha(usuario.getSenha()))
                 .build();
 
         JwsHeader cabecalho = JwsHeader.with(MacAlgorithm.HS256).build();
         return jwtEncoder.encode(JwtEncoderParameters.from(cabecalho, dados)).getTokenValue();
+    }
+
+    // Identifica a versao da credencial SEM incluir o hash BCrypt no token.
+    // Quando a senha muda, todos os tokens anteriores deixam de autorizar acesso.
+    public static String versaoSenha(String hashBCrypt) {
+        try {
+            byte[] resumo = MessageDigest.getInstance("SHA-256")
+                    .digest(hashBCrypt.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(resumo);
+        } catch (NoSuchAlgorithmException erro) {
+            throw new IllegalStateException("SHA-256 nao disponivel.", erro);
+        }
     }
 
     public long getDuracaoSegundos() {

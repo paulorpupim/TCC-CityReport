@@ -126,7 +126,9 @@ public class ApiSecurityConfig {
         conversor.setJwtGrantedAuthoritiesConverter(jwt -> {
             Usuario usuario = usuarioRepository.findByEmailIgnoreCase(jwt.getSubject()).orElse(null);
             if (usuario == null || !Boolean.TRUE.equals(usuario.getAtivo())
-                    || usuario.getPerfil() != PerfilUsuario.FUNCIONARIO) {
+                    || usuario.getPerfil() != PerfilUsuario.FUNCIONARIO
+                    || !JwtService.versaoSenha(usuario.getSenha())
+                            .equals(jwt.getClaimAsString("versaoSenha"))) {
                 return List.of();
             }
             return List.of(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
