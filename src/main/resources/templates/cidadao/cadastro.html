@@ -110,9 +110,12 @@
                     <label for="senha">Senha</label>
                     <!-- Vinculação por name, sem devolver a senha em HTML após erros de validação. -->
                     <input type="password" id="senha" name="senha"
-                           placeholder="Crie uma senha" minlength="8" autocomplete="new-password"
+                           placeholder="Crie uma senha forte" minlength="8" maxlength="64"
+                           pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])\S{8,64}"
+                           title="De 8 a 64 caracteres, com letra maiúscula, minúscula, número e símbolo, sem espaços."
+                           autocomplete="new-password" aria-describedby="dica-senha"
                            th:attr="aria-invalid=${#fields.hasErrors('senha')}" required>
-                    <small class="auth-help">Utilize pelo menos 8 caracteres.</small>
+                    <small id="dica-senha" class="auth-help">De 8 a 64 caracteres, com letra maiúscula, minúscula, número e símbolo, sem espaços.</small>
                     <span id="erro-senha" class="auth-field-error" role="alert"
                           th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></span>
                 </div>

@@ -13,29 +13,7 @@
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
     <!-- Mesmo cabeçalho da página inicial do atendente. -->
-    <header class="home-header">
-        <div class="home-header-inner">
-            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
-                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg"
-                     alt="" class="home-brand-icon" width="48" height="48">
-                <span class="home-brand-copy">
-                    <span class="home-brand-name">CITY<span>REPORT</span></span>
-                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
-                </span>
-            </a>
-            <nav class="home-nav" aria-label="Navegação administrativa">
-                <a class="home-nav-link" th:href="@{/}" href="/">Início</a>
-                <a class="home-nav-link is-current" th:href="@{/atendente/chamados}" href="/atendente/chamados" aria-current="page">Chamados</a>
-                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
-                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
-                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
-            </nav>
-            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button class="home-logout-button" type="submit">Sair</button>
-            </form>
-        </div>
-    </header>
+    <header th:replace="~{fragments/header :: atendente('chamados')}"></header>
 
     <main class="home-container admin-queue-main" id="conteudo">
         <div class="admin-queue-breadcrumb">
@@ -92,31 +70,27 @@
             <p class="admin-queue-stage-explanation" th:if="${aba == 'todos'}">Consulta geral, incluindo chamados aguardando informações, duplicados e encerrados.</p>
         </section>
 
-        <!-- A tabela e o foco principal; os filtros ficam na barra lateral. -->
+        <!-- Os filtros ficam à esquerda. A pesquisa, ligada ao mesmo formulário GET,
+             permanece sobre a tabela sem duplicar parâmetros nem utilizar JavaScript. -->
         <div class="admin-queue-workspace">
         <aside class="admin-queue-card admin-queue-filter-card" aria-labelledby="titulo-filtros">
             <!-- Sem JavaScript: em telas menores, este controle recolhe o painel. -->
             <input class="admin-queue-filter-toggle" type="checkbox" id="mostrar-filtros"
                    th:checked="${filtrosAplicados}">
             <label class="admin-queue-filter-mobile-trigger" for="mostrar-filtros">
-                <span>Pesquisar e filtrar</span>
+                <span>Filtrar resultados</span>
                 <span class="admin-queue-filter-chevron" aria-hidden="true">⌄</span>
             </label>
             <div class="admin-queue-filter-content">
             <div class="admin-queue-section-heading">
                 <div>
-                    <p class="admin-queue-kicker">CONSULTA</p>
-                    <h2 id="titulo-filtros">Pesquisar e filtrar</h2>
+                    <p class="admin-queue-kicker">FILTROS</p>
+                    <h2 id="titulo-filtros">Filtrar chamados</h2>
                 </div>
                 <span class="admin-queue-section-aside">Combine os filtros desejados</span>
             </div>
-            <form class="admin-queue-filter-form" th:action="@{/atendente/chamados}" action="/atendente/chamados" method="get">
+            <form id="form-filtros-chamados" class="admin-queue-filter-form" th:action="@{/atendente/chamados}" action="/atendente/chamados" method="get">
                 <input type="hidden" name="aba" th:value="${aba}" value="pre-aprovacao">
-                <div class="admin-queue-search-field">
-                    <label for="busca">Protocolo ou título</label>
-                    <input type="search" id="busca" name="busca" maxlength="150"
-                           placeholder="Ex.: 2026-000001 ou buraco na rua" th:value="${busca}">
-                </div>
                 <div class="admin-queue-filter-options">
                     <details class="admin-queue-filter-details" th:attr="open=${!#lists.isEmpty(categoriasSelecionadas) ? 'open' : null}">
                         <summary>Categoria <span class="admin-queue-filter-hint">Múltipla escolha</span></summary>
@@ -164,7 +138,7 @@
                     </div>
                 </div>
                 <div class="admin-queue-filter-actions">
-                    <button class="admin-queue-button-primary" type="submit">Pesquisar chamados</button>
+                    <button class="admin-queue-button-primary" type="submit">Aplicar filtros</button>
                     <a class="admin-queue-button-clear" th:href="@{/atendente/chamados(aba=${aba})}" href="/atendente/chamados">Limpar filtros</a>
                 </div>
             </form>
@@ -178,6 +152,21 @@
                     <h2 id="titulo-resultados">Chamados encontrados</h2>
                 </div>
                 <span class="admin-queue-count"><strong th:text="${#lists.size(chamados)}">0</strong> chamados</span>
+            </div>
+
+            <!-- A busca pertence ao formulário de filtros pelo atributo form.
+                 Enter ou o botão Pesquisar envia busca, categoria, status, prioridade e aba juntos. -->
+            <div class="admin-queue-search-bar admin-queue-card" role="search" aria-label="Pesquisar chamados">
+                <div class="admin-queue-search-field">
+                    <label for="busca">Pesquisar por protocolo ou título</label>
+                    <div class="admin-queue-search-controls">
+                        <input type="search" id="busca" name="busca" maxlength="150"
+                               form="form-filtros-chamados"
+                               placeholder="Ex.: 2026-000001 ou buraco na rua" th:value="${busca}">
+                        <button class="admin-queue-button-primary" type="submit"
+                                form="form-filtros-chamados">Pesquisar</button>
+                    </div>
+                </div>
             </div>
 
             <div class="admin-queue-empty" th:if="${#lists.isEmpty(chamados)}">

@@ -283,3 +283,103 @@
 @media (prefers-reduced-motion: reduce) {
     .home-page .home-nav-link, .home-page .home-button, .home-page .home-admin-card { transition: none; }
 }
+
+/* Menu de perfil do atendente: mantém o cabeçalho do cidadão sem alterações. */
+.home-page .home-account-menu {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 50;
+}
+.home-page .home-account-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .6rem;
+    min-height: 44px;
+    padding: .25rem .2rem .25rem .65rem;
+    border: 1px solid transparent;
+    border-radius: .8rem;
+    color: #fff;
+    font-size: .84rem;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background .18s ease;
+}
+.home-page .home-account-toggle::-webkit-details-marker { display: none; }
+.home-page .home-account-toggle::marker { content: ''; }
+.home-page .home-account-toggle:hover,
+.home-page .home-account-menu[open] .home-account-toggle { background: #24344e; }
+.home-page .home-account-toggle:focus-visible,
+.home-page .home-account-action:focus-visible {
+    outline: 3px solid #2b9df4;
+    outline-offset: 3px;
+}
+.home-page .home-account-role { white-space: nowrap; }
+.home-page .home-account-avatar {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 50%;
+    background: #2a3a52;
+    color: #eaf4ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.home-page .home-account-chevron {
+    color: #d6e2ef;
+    transition: transform .18s ease;
+}
+.home-page .home-account-menu[open] .home-account-chevron { transform: rotate(180deg); }
+.home-page .home-account-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: min(224px, calc(100vw - 24px));
+    padding: .45rem;
+    border: 1px solid #dce6f0;
+    border-radius: .9rem;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(15,23,42,.19);
+    display: grid;
+    gap: .2rem;
+    z-index: 100;
+}
+.home-page .home-account-action {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: .78rem .85rem;
+    border: 0;
+    border-radius: .6rem;
+    background: transparent;
+    color: #192231;
+    font: inherit;
+    font-size: .86rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+}
+.home-page .home-account-action:hover,
+.home-page .home-account-action.is-current { background: #eaf4ff; color: #146daa; }
+.home-page .home-account-logout {
+    margin: 0;
+    padding-top: .25rem;
+    border-top: 1px solid #e6edf5;
+}
+.home-page .home-account-signout:hover { background: #fff0f0; color: #ae1820; }
+@media (max-width: 1120px) {
+    .home-page .home-account-menu { margin-left: auto; }
+}
+@media (max-width: 430px) {
+    .home-page .home-account-toggle { gap: .4rem; padding-left: .25rem; }
+    .home-page .home-account-avatar { width: 34px; height: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-page .home-account-toggle, .home-page .home-account-chevron { transition: none; }
+}

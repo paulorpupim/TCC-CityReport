@@ -3,6 +3,7 @@ package com.tccinfonet.cityreport.modules.usuario.service;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -29,6 +30,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UsuarioService {
+
+    // 8 a 64 caracteres, com letra minuscula, maiuscula, numero e simbolo, sem espacos.
+    private static final Pattern PADRAO_SENHA_FORTE = Pattern.compile(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\\s])\\S{8,64}$");
 
     private final UsuarioRepository usuarioRepository;
     private final SetorService setorService;
@@ -273,8 +278,10 @@ public class UsuarioService {
     }
 
     private void validarSenha(String senha) {
-        if (senha == null || senha.isBlank() || senha.length() < 8) {
-            throw new IllegalArgumentException("A senha deve ter pelo menos 8 caracteres.");
+        if (senha == null || !PADRAO_SENHA_FORTE.matcher(senha).matches()) {
+            throw new IllegalArgumentException(
+                    "A senha deve ter de 8 a 64 caracteres, com letra maiúscula, "
+                    + "minúscula, número e símbolo, sem espaços.");
         }
     }
 }

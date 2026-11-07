@@ -124,7 +124,7 @@
     .admin-queue-page .admin-queue-tabs a, .admin-queue-page .admin-queue-row-action { transition: none; }
 }
 
-/* ---- Layout compacto: filas em destaque, filtros a direita ---- */
+/* ---- Layout compacto: filtros a esquerda, resultados e pesquisa a direita ---- */
 .admin-queue-page .admin-queue-main { width: min(100% - 3rem, 1520px); }
 .admin-queue-page .admin-queue-breadcrumb { margin-bottom: 12px; }
 .admin-queue-page .admin-queue-intro {
@@ -142,8 +142,8 @@
 
 /* A coluna esquerda recebe todo o espaco disponivel; o painel nao empurra as tabelas. */
 .admin-queue-page .admin-queue-workspace { display: grid; gap: 1.15rem; align-items: start; }
-.admin-queue-page .admin-queue-workspace > .admin-queue-results { min-width: 0; grid-column: 1; grid-row: 1; }
-.admin-queue-page .admin-queue-workspace > .admin-queue-filter-card { min-width: 0; grid-column: 2; grid-row: 1; }
+.admin-queue-page .admin-queue-workspace > .admin-queue-results { min-width: 0; grid-column: 2; grid-row: 1; }
+.admin-queue-page .admin-queue-workspace > .admin-queue-filter-card { min-width: 0; grid-column: 1; grid-row: 1; }
 .admin-queue-page .admin-queue-filter-card { padding: 1.1rem; margin-bottom: 0; }
 .admin-queue-page .admin-queue-filter-card .admin-queue-section-heading { margin-bottom: .95rem; }
 .admin-queue-page .admin-queue-filter-card .admin-queue-section-heading h2 { font-size: 1rem; }
@@ -171,10 +171,13 @@
 .admin-queue-page .admin-queue-filter-mobile-trigger { display: none; }
 
 @media (min-width: 981px) {
-    .admin-queue-page .admin-queue-workspace { grid-template-columns: minmax(0, 1fr) 282px; }
+    .admin-queue-page .admin-queue-workspace { grid-template-columns: 282px minmax(0, 1fr); }
     .admin-queue-page .admin-queue-filter-card {
-        position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto;
-        scrollbar-width: thin;
+        /* Altura livre: os filtros abertos aumentam a altura da página,
+           sem criar uma segunda barra de rolagem dentro do painel. */
+        position: static;
+        max-height: none;
+        overflow: visible;
     }
     .admin-queue-page .admin-queue-table { min-width: 760px; }
     .admin-queue-page .admin-queue-table-all { min-width: 810px; }
@@ -213,4 +216,46 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .admin-queue-page .admin-queue-filter-chevron { transition: none; }
+}
+
+/* --- Pesquisa acima da tabela; filtros independentes ao lado --- */
+.admin-queue-page .admin-queue-search-bar {
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+.admin-queue-page .admin-queue-search-bar .admin-queue-search-field { margin: 0; }
+.admin-queue-page .admin-queue-search-controls {
+    display: flex;
+    align-items: stretch;
+    gap: .65rem;
+}
+.admin-queue-page .admin-queue-search-controls input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+}
+.admin-queue-page .admin-queue-search-controls button {
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* Exibe todas as opções de cada <details> expandido: sem rolagem interna. */
+.admin-queue-page .admin-queue-check-grid {
+    max-height: none;
+    overflow: visible;
+}
+.admin-queue-page .admin-queue-filter-details,
+.admin-queue-page .admin-queue-checklist,
+.admin-queue-page .admin-queue-filter-options {
+    max-height: none;
+    overflow: visible;
+}
+
+@media (max-width: 980px) {
+    .admin-queue-page .admin-queue-search-bar { padding: .9rem; }
+}
+@media (max-width: 540px) {
+    .admin-queue-page .admin-queue-search-controls { flex-direction: column; }
+    .admin-queue-page .admin-queue-search-controls button { width: 100%; }
 }

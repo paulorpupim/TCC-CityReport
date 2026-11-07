@@ -11,30 +11,7 @@
 <body class="home-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
-    <header class="home-header">
-        <div class="home-header-inner">
-            <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
-                <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg"
-                     alt="" class="home-brand-icon" width="48" height="48">
-                <span class="home-brand-copy">
-                    <span class="home-brand-name">CITY<span>REPORT</span></span>
-                    <span class="home-brand-subtitle">PORTAL ADMINISTRATIVO</span>
-                </span>
-            </a>
-            <nav class="home-nav" aria-label="Navegação administrativa">
-                <a class="home-nav-link is-current" th:href="@{/}" href="/" aria-current="page">Início</a>
-                <a class="home-nav-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
-                <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios">Usuários</a>
-                <a class="home-nav-link" th:href="@{/atendente/categorias}" href="/atendente/categorias">Categorias</a>
-                <a class="home-nav-link" th:href="@{/atendente/setores}" href="/atendente/setores">Setores</a>
-                <a class="home-nav-link" th:href="@{/atendente/minha-senha}" href="/atendente/minha-senha">Minha senha</a>
-            </nav>
-            <form class="home-logout" th:action="@{/logout}" action="/logout" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button class="home-logout-button" type="submit">Sair</button>
-            </form>
-        </div>
-    </header>
+    <header th:replace="~{fragments/header :: atendente('inicio')}"></header>
 
     <main class="home-container" id="conteudo">
         <section class="home-admin-intro" aria-labelledby="titulo-admin">

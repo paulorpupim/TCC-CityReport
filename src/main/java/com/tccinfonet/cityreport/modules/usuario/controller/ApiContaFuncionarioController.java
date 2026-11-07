@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.tccinfonet.cityreport.modules.usuario.dto.AlterarSenhaMobileRequestDTO;
+import com.tccinfonet.cityreport.modules.usuario.dto.TokenMobileResponseDTO;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;
 import com.tccinfonet.cityreport.modules.usuario.service.UsuarioService;
+import com.tccinfonet.cityreport.security.JwtService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiContaFuncionarioController {
 
     private final UsuarioService usuarioService;
+    private final JwtService jwtService;
 
     // O usuario e identificado pelo JWT autenticado, nunca por um ID enviado pelo celular.
     @PostMapping("/minha-senha")
@@ -48,7 +51,15 @@ public class ApiContaFuncionarioController {
         try {
             // Reaproveita a verificacao da senha atual e o BCrypt ja usados no perfil web.
             usuarioService.alterarSenha(usuario.getId(), dados.senhaAtual(), dados.novaSenha());
-            return ResponseEntity.noContent().build();
+
+            // A senha anterior foi persistida e os JWTs antigos foram invalidados.
+            // Emitimos outro token com a nova versao de senha para manter ESTA sessao
+            // do aplicativo ativa, sem revalidar tokens de outros dispositivos.
+            Usuario atualizado = usuarioService.buscarPorId(usuario.getId());
+            return ResponseEntity.ok(new TokenMobileResponseDTO(
+                    jwtService.gerarToken(atualizado),
+                    "Bearer",
+                    jwtService.getDuracaoSegundos()));
         } catch (IllegalArgumentException erro) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", erro.getMessage()));
         }
