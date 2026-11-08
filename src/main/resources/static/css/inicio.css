@@ -383,3 +383,71 @@
 @media (prefers-reduced-motion: reduce) {
     .home-page .home-account-toggle, .home-page .home-account-chevron { transition: none; }
 }
+
+/* Dropdown "Chamados" no cabecalho administrativo, sem JavaScript. */
+.home-page .home-nav-menu {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 70;
+}
+.home-page .home-nav-toggle {
+    gap: .4rem;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+.home-page .home-nav-toggle::-webkit-details-marker { display: none; }
+.home-page .home-nav-toggle::marker { content: ''; }
+.home-page .home-nav-toggle:focus-visible,
+.home-page .home-nav-option:focus-visible {
+    outline: 3px solid #2b9df4;
+    outline-offset: 2px;
+}
+.home-page .home-nav-menu[open] .home-nav-toggle {
+    background: #24344e;
+    color: #fff;
+}
+.home-page .home-nav-menu[open] .home-nav-toggle.is-current { background: #2b9df4; color: #0f172a; }
+.home-page .home-nav-chevron { transition: transform .18s ease; }
+.home-page .home-nav-menu[open] .home-nav-chevron { transform: rotate(180deg); }
+.home-page .home-nav-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 225px;
+    padding: .45rem;
+    display: grid;
+    gap: .2rem;
+    border: 1px solid #dce6f0;
+    border-radius: .9rem;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .19);
+    z-index: 100;
+}
+.home-page .home-nav-option {
+    display: block;
+    padding: .78rem .85rem;
+    margin: 0;
+    color: #192231;
+    background: transparent;
+    font-size: .86rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-decoration: none;
+    border-radius: .6rem;
+    white-space: normal;
+}
+.home-page .home-nav-option:hover,
+.home-page .home-nav-option.is-current,
+.home-page .home-nav-option[aria-current='page'] {
+    color: #146daa;
+    background: #eaf4ff;
+}
+@media (max-width: 740px) {
+    /* Rolagem horizontal cortaria o menu absoluto. Deixar links quebrarem linha. */
+    .home-page .home-nav { flex-wrap: wrap; overflow: visible; }
+    .home-page .home-nav-toggle { padding: .65rem .8rem; font-size: .79rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-page .home-nav-chevron { transition: none; }
+}

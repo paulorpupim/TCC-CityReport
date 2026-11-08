@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoService;
+import com.tccinfonet.cityreport.modules.inicio.service.InicioService;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
 import com.tccinfonet.cityreport.modules.usuario.enums.PerfilUsuario;
 import com.tccinfonet.cityreport.modules.usuario.service.UsuarioService;
@@ -18,6 +19,7 @@ public class InicioController {
 
     private final UsuarioService usuarioService;
     private final ChamadoService chamadoService;
+    private final InicioService inicioService;
 
     @GetMapping("/login")
     public String login() {
@@ -32,6 +34,7 @@ public class InicioController {
         model.addAttribute("perfilUsuario", usuario.getPerfil());
 
         if (usuario.getPerfil() == PerfilUsuario.ATENDENTE) {
+            model.addAttribute("painel", inicioService.consultar());
             return "inicio/atendente";
         }
 

@@ -170,3 +170,16 @@
 @media (prefers-reduced-motion: reduce) {
     .admin-detail-page .admin-detail-tabs a { transition: none; }
 }
+
+/* Busca de funcionário com Slim Select, usando a paleta do CityReport. */
+.admin-detail-page {
+    --ss-primary-color: #2b9df4;
+    --ss-bg-color: #ffffff;
+    --ss-font-color: #192231;
+    --ss-border-color: #bfd1e2;
+    --ss-border-radius: .52rem;
+    --ss-main-height: 44px;
+}
+.admin-detail-page .admin-detail-field .ss-main { width:100%; font:inherit; font-size:.84rem; }
+.admin-detail-page .admin-detail-field .ss-main:focus-within { outline:2px solid rgba(43,157,244,.4); }
+.admin-detail-page .admin-detail-field-error { color:#b91c1c; margin-top:.4rem; }

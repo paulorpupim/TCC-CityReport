@@ -1,0 +1,90 @@
+/* Dashboard administrativo: usa a identidade visual já presente no CityReport. */
+.dashboard-page .dash-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+.dashboard-page .dash-queue-card,
+.dashboard-page .dash-metric,
+.dashboard-page .dash-panel {
+    border: 1px solid #dbe4ed;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .035);
+}
+.dashboard-page .dash-queue-card {
+    --accent: #2b9df4;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 203px;
+    gap: .55rem;
+    padding: 1.25rem;
+    border-top: 4px solid var(--accent);
+    color: #0f172a;
+    text-decoration: none;
+    transition: box-shadow .2s, transform .2s, border-color .2s;
+}
+.dashboard-page .dash-queue-card:hover,
+.dashboard-page .dash-queue-card:focus-visible {
+    color: #0f172a;
+    border-color: var(--accent);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .1);
+    transform: translateY(-2px);
+}
+.dashboard-page .dash-queue-card-yellow { --accent: #dba400; }
+.dashboard-page .dash-queue-card-orange { --accent: #ef8b23; }
+.dashboard-page .dash-queue-card-green { --accent: #10a16a; }
+.dashboard-page .dash-queue-label { font-size: .83rem; font-weight: 800; line-height: 1.4; }
+.dashboard-page .dash-queue-number { font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 800; line-height: 1; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.dashboard-page .dash-queue-caption { color: #526178; font-size: .78rem; line-height: 1.5; }
+.dashboard-page .dash-queue-action { margin-top: auto; color: #146daa; font-size: .8rem; font-weight: 800; }
+.dashboard-page .dash-metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.dashboard-page .dash-metric { display: flex; flex-direction: column; gap: .6rem; min-height: 145px; padding: 1.15rem 1.25rem; }
+.dashboard-page .dash-metric-label { color: #43546b; font-size: .83rem; font-weight: 750; }
+.dashboard-page .dash-metric-number { color: #0f172a; font-size: 2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.dashboard-page .dash-metric-help { margin-top: auto; color: #607087; font-size: .76rem; line-height: 1.5; }
+.dashboard-page .dash-metric-link { text-decoration: none; }
+.dashboard-page .dash-metric-link:hover,
+.dashboard-page .dash-metric-link:focus-visible { border-color: #5fa9dd; background: #f8fcff; }
+.dashboard-page .dash-panel { padding: 1.3rem; }
+.dashboard-page .dash-panel-explainer { margin: 0 0 1rem; color: #5e6b7e; font-size: .82rem; line-height: 1.55; }
+.dashboard-page .dash-table-wrap { width: 100%; overflow-x: auto; }
+.dashboard-page .dash-priority-table { width: 100%; min-width: 730px; margin: 0; border: 0; border-radius: 0; }
+.dashboard-page .dash-priority-table th { color: #506079; background: #f3f7fb; font-size: .74rem; border-color: #e0e7ef; }
+.dashboard-page .dash-priority-table td { color: #334358; font-size: .82rem; border-color: #e0e7ef; }
+.dashboard-page .dash-priority-table td:first-child { min-width: 175px; }
+.dashboard-page .dash-protocol { display: block; color: #526178; font-size: .73rem; font-weight: 700; margin-bottom: .25rem; }
+.dashboard-page .dash-request-title { display: block; max-width: 280px; overflow-wrap: anywhere; font-weight: 800; color: #0f172a; }
+.dashboard-page .dash-priority { display: inline-block; padding: .27rem .57rem; border-radius: 999px; font-size: .75rem; font-weight: 800; white-space: nowrap; }
+.dashboard-page .dash-priority-critical { color: #9f1825; background: #ffe8ec; }
+.dashboard-page .dash-priority-high { color: #945000; background: #fff0d7; }
+.dashboard-page .dash-details-link { color: #146daa; font-weight: 800; font-size: .8rem; white-space: nowrap; }
+.dashboard-page .dash-empty { margin: 0; padding: 1.25rem; border: 1px dashed #bed1e4; border-radius: .7rem; color: #526178; background: #f8fbff; font-size: .85rem; }
+.dashboard-page .dash-distribution-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.dashboard-page .dash-distribution-panel h3 { margin: 0 0 .4rem; color: #0f172a; font-size: 1rem; }
+.dashboard-page .dash-bars { display: grid; gap: 1.05rem; }
+.dashboard-page .dash-bar-label { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .45rem; font-size: .83rem; color: #334358; }
+.dashboard-page .dash-bar-label span { overflow-wrap: anywhere; }
+.dashboard-page .dash-bar-label strong { color: #0f172a; font-variant-numeric: tabular-nums; }
+.dashboard-page .dash-bar-track { height: 11px; width: 100%; background: #e8eff6; border-radius: 999px; overflow: hidden; }
+.dashboard-page .dash-bar-fill { display: block; height: 100%; background: #2b9df4; border-radius: inherit; }
+.dashboard-page .dash-distribution-panel:nth-child(2) .dash-bar-fill { background: #2077b8; }
+.dashboard-page .dash-footnote { margin: .9rem 0 0; color: #617087; font-size: .76rem; line-height: 1.6; }
+@media (max-width: 1050px) {
+    .dashboard-page .dash-queue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 740px) {
+    .dashboard-page .dash-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-page .dash-distribution-grid { grid-template-columns: 1fr; }
+    .dashboard-page .dash-queue-card { min-height: 180px; }
+}
+@media (max-width: 480px) {
+    .dashboard-page .dash-queue-grid,
+    .dashboard-page .dash-metric-grid { grid-template-columns: 1fr; }
+    .dashboard-page .dash-queue-card { min-height: 162px; }
+    .dashboard-page .dash-metric { min-height: 125px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-page .dash-queue-card { transition: none; }
+}

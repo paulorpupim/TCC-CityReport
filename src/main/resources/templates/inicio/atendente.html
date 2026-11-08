@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0F172A">
-    <title>Início | Administração · CityReport</title>
+    <title>Painel administrativo | CityReport</title>
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 </head>
-<body class="home-page">
+<body class="home-page dashboard-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-
     <header th:replace="~{fragments/header :: atendente('inicio')}"></header>
 
     <main class="home-container" id="conteudo">
@@ -18,42 +18,175 @@
             <div>
                 <p class="home-panel-kicker">CITYREPORT · GESTÃO MUNICIPAL</p>
                 <h1 id="titulo-admin">Painel administrativo</h1>
-                <p>Olá, <strong th:text="${nomeUsuario}">Atendente</strong>! Acesse as filas de atendimento e os cadastros da prefeitura.</p>
+                <p>Olá, <strong th:text="${nomeUsuario}">Atendente</strong>! Acompanhe as demandas da cidade e organize as próximas ações da equipe.</p>
             </div>
-            <a class="home-button home-button-primary" th:href="@{/atendente/chamados(aba='pre-aprovacao')}" href="/atendente/chamados?aba=pre-aprovacao">Analisar chamados</a>
+            <a class="home-button home-button-primary" th:href="@{/atendente/chamados(aba='pre-aprovacao')}"
+               href="/atendente/chamados?aba=pre-aprovacao">Analisar chamados</a>
         </section>
 
-        <section class="home-admin-section" aria-labelledby="titulo-filas">
+        <!-- Os indicadores sempre usam o estado atual dos chamados no banco de dados. -->
+        <section class="home-admin-section" aria-labelledby="titulo-operacao">
             <div class="home-admin-section-heading">
-                <div><p class="home-panel-kicker">ATENDIMENTO</p><h2 id="titulo-filas">Filas de chamados</h2></div>
-                <a class="home-text-link" th:href="@{/atendente/chamados(aba='todos')}" href="/atendente/chamados?aba=todos">Consultar todos <span aria-hidden="true">→</span></a>
+                <div>
+                    <p class="home-panel-kicker">ATENDIMENTO DIÁRIO</p>
+                    <h2 id="titulo-operacao">Filas que precisam de acompanhamento</h2>
+                </div>
+                <a class="home-text-link" th:href="@{/atendente/chamados(aba='todos')}"
+                   href="/atendente/chamados?aba=todos">Ver todos os chamados</a>
             </div>
-            <div class="home-admin-grid">
-                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='pre-aprovacao')}" href="/atendente/chamados?aba=pre-aprovacao">
-                    <span class="home-admin-card-marker marker-blue" aria-hidden="true"></span>
-                    <span class="home-admin-card-title">Pré-aprovação</span>
-                    <span class="home-admin-card-text">Solicitações enviadas que aguardam a análise inicial.</span>
-                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+
+            <div class="dash-queue-grid">
+                <a class="dash-queue-card dash-queue-card-blue" th:href="@{/atendente/chamados(aba='pre-aprovacao')}"
+                   href="/atendente/chamados?aba=pre-aprovacao">
+                    <span class="dash-queue-label">Aguardando triagem</span>
+                    <strong class="dash-queue-number" th:text="${painel.indicadores.aguardandoTriagem}">0</strong>
+                    <span class="dash-queue-caption">Novos chamados para análise inicial</span>
+                    <span class="dash-queue-action">Abrir fila <span aria-hidden="true">→</span></span>
                 </a>
-                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='em-aberto')}" href="/atendente/chamados?aba=em-aberto">
-                    <span class="home-admin-card-marker marker-yellow" aria-hidden="true"></span>
-                    <span class="home-admin-card-title">Em aberto</span>
-                    <span class="home-admin-card-text">Chamados aceitos que aguardam atribuição de funcionário.</span>
-                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                <a class="dash-queue-card dash-queue-card-yellow" th:href="@{/atendente/chamados(aba='em-aberto')}"
+                   href="/atendente/chamados?aba=em-aberto">
+                    <span class="dash-queue-label">Aguardando atribuição</span>
+                    <strong class="dash-queue-number" th:text="${painel.indicadores.aguardandoAtribuicao}">0</strong>
+                    <span class="dash-queue-caption">Chamados aprovados sem funcionário</span>
+                    <span class="dash-queue-action">Abrir fila <span aria-hidden="true">→</span></span>
                 </a>
-                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='em-atendimento')}" href="/atendente/chamados?aba=em-atendimento">
-                    <span class="home-admin-card-marker marker-orange" aria-hidden="true"></span>
-                    <span class="home-admin-card-title">Em atendimento</span>
-                    <span class="home-admin-card-text">Serviços atribuídos, em execução ou pendentes.</span>
-                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                <a class="dash-queue-card dash-queue-card-orange" th:href="@{/atendente/chamados(aba='em-atendimento')}"
+                   href="/atendente/chamados?aba=em-atendimento">
+                    <span class="dash-queue-label">Em atendimento</span>
+                    <strong class="dash-queue-number" th:text="${painel.indicadores.emAtendimento}">0</strong>
+                    <span class="dash-queue-caption">Atribuídos, em execução ou pendentes</span>
+                    <span class="dash-queue-action">Abrir fila <span aria-hidden="true">→</span></span>
                 </a>
-                <a class="home-admin-card" th:href="@{/atendente/chamados(aba='aguardando-validacao')}" href="/atendente/chamados?aba=aguardando-validacao">
-                    <span class="home-admin-card-marker marker-green" aria-hidden="true"></span>
-                    <span class="home-admin-card-title">Aguardando validação</span>
-                    <span class="home-admin-card-text">Conclusões enviadas por funcionários para conferência.</span>
-                    <span class="home-admin-card-go" aria-hidden="true">→</span>
+                <a class="dash-queue-card dash-queue-card-green" th:href="@{/atendente/chamados(aba='aguardando-validacao')}"
+                   href="/atendente/chamados?aba=aguardando-validacao">
+                    <span class="dash-queue-label">Aguardando validação</span>
+                    <strong class="dash-queue-number" th:text="${painel.indicadores.aguardandoValidacao}">0</strong>
+                    <span class="dash-queue-caption">Serviços concluídos para conferência</span>
+                    <span class="dash-queue-action">Abrir fila <span aria-hidden="true">→</span></span>
                 </a>
             </div>
+        </section>
+
+        <section class="home-admin-section" aria-labelledby="titulo-atencao">
+            <div class="home-admin-section-heading">
+                <div>
+                    <p class="home-panel-kicker">PONTOS DE ATENÇÃO</p>
+                    <h2 id="titulo-atencao">Situação operacional</h2>
+                </div>
+            </div>
+            <div class="dash-metric-grid">
+                <div class="dash-metric">
+                    <span class="dash-metric-label">Chamados ativos</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.ativos}">0</strong>
+                    <span class="dash-metric-help">Ainda não encerrados; não inclui duplicados</span>
+                </div>
+                <a class="dash-metric dash-metric-link" th:href="@{/atendente/chamados(aba='todos',status='AGUARDANDO_INFORMACOES')}"
+                   href="/atendente/chamados?aba=todos&amp;status=AGUARDANDO_INFORMACOES">
+                    <span class="dash-metric-label">Aguardando cidadão</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.aguardandoCidadao}">0</strong>
+                    <span class="dash-metric-help">Pedidos de informações complementares</span>
+                </a>
+                <a class="dash-metric dash-metric-link" th:href="@{/atendente/chamados(aba='pre-aprovacao')}"
+                   href="/atendente/chamados?aba=pre-aprovacao">
+                    <span class="dash-metric-label">Urgência alta/crítica informada</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.urgenciasInformadasNaTriagem}">0</strong>
+                    <span class="dash-metric-help">Relatada pelo cidadão; ainda sem triagem</span>
+                </a>
+                <a class="dash-metric dash-metric-link" th:href="@{/atendente/chamados(aba='todos',prioridade='ALTA,CRITICA',status='ABERTO,ATRIBUIDO,EM_EXECUCAO,PENDENTE,AGUARDANDO_VALIDACAO')}"
+                   href="/atendente/chamados?aba=todos&amp;prioridade=ALTA&amp;prioridade=CRITICA&amp;status=ABERTO&amp;status=ATRIBUIDO&amp;status=EM_EXECUCAO&amp;status=PENDENTE&amp;status=AGUARDANDO_VALIDACAO">
+                    <span class="dash-metric-label">Prioridade oficial alta/crítica</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.prioridadeOficialAlta}">0</strong>
+                    <span class="dash-metric-help">Chamados ativos já avaliados pela prefeitura</span>
+                </a>
+                <div class="dash-metric">
+                    <span class="dash-metric-label">Ativos há mais de 7 dias</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.ativosComMaisDeSeteDias}">0</strong>
+                    <span class="dash-metric-help">Tempo desde o registro; não indica prazo vencido</span>
+                </div>
+                <div class="dash-metric">
+                    <span class="dash-metric-label">Resolvidos nos últimos 30 dias</span>
+                    <strong class="dash-metric-number" th:text="${painel.indicadores.resolvidosUltimosTrintaDias}">0</strong>
+                    <span class="dash-metric-help">Conclusões aprovadas pelo atendente</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="home-admin-section" aria-labelledby="titulo-prioritarios">
+            <div class="home-admin-section-heading">
+                <div>
+                    <p class="home-panel-kicker">ACOMPANHAMENTO PRIORITÁRIO</p>
+                    <h2 id="titulo-prioritarios">Chamados de prioridade alta ou crítica</h2>
+                </div>
+                <a class="home-text-link" th:href="@{/atendente/chamados(aba='todos',prioridade='ALTA,CRITICA',status='ABERTO,ATRIBUIDO,EM_EXECUCAO,PENDENTE,AGUARDANDO_VALIDACAO')}"
+                   href="/atendente/chamados?aba=todos&amp;prioridade=ALTA&amp;prioridade=CRITICA&amp;status=ABERTO&amp;status=ATRIBUIDO&amp;status=EM_EXECUCAO&amp;status=PENDENTE&amp;status=AGUARDANDO_VALIDACAO">Ver lista completa</a>
+            </div>
+            <div class="dash-panel">
+                <p class="dash-panel-explainer">Até 6 chamados ativos, com prioridade oficial definida. Críticos aparecem primeiro; dentro da mesma prioridade, os mais antigos.</p>
+                <div class="dash-table-wrap" th:if="${!#lists.isEmpty(painel.prioritarios)}">
+                    <table class="dash-priority-table">
+                        <thead><tr><th scope="col">Protocolo / chamado</th><th scope="col">Setor</th><th scope="col">Prioridade</th><th scope="col">Status</th><th scope="col">Registrado em</th><th scope="col">Ação</th></tr></thead>
+                        <tbody>
+                        <tr th:each="chamado : ${painel.prioritarios}">
+                            <td>
+                                <span class="dash-protocol" th:text="${chamado.protocolo}">2026-000001</span>
+                                <span class="dash-request-title" th:text="${chamado.titulo}">Exemplo de chamado</span>
+                            </td>
+                            <td th:text="${chamado.setor}">Obras</td>
+                            <td><span class="dash-priority"
+                                      th:classappend="${chamado.prioridade.name() == 'CRITICA' ? 'dash-priority-critical' : 'dash-priority-high'}"
+                                      th:text="${chamado.prioridade.name() == 'CRITICA' ? 'Crítica' : 'Alta'}">Alta</span></td>
+                            <td th:text="${#strings.replace(chamado.status.name(), '_', ' ')}">ATRIBUÍDO</td>
+                            <td th:text="${#temporals.format(chamado.dataCriacao, 'dd/MM/yyyy')}">08/11/2026</td>
+                            <td><a class="dash-details-link" th:href="@{/atendente/chamados/{id}(id=${chamado.id})}" href="#">Ver detalhes</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dash-empty" th:if="${#lists.isEmpty(painel.prioritarios)}">
+                    Nenhum chamado ativo com prioridade oficial alta ou crítica no momento.
+                </div>
+            </div>
+        </section>
+
+        <section class="home-admin-section" aria-labelledby="titulo-distribuicao">
+            <div class="home-admin-section-heading">
+                <div>
+                    <p class="home-panel-kicker">PLANEJAMENTO DOS SERVIÇOS</p>
+                    <h2 id="titulo-distribuicao">Onde estão concentrados os chamados ativos?</h2>
+                </div>
+                <a class="home-text-link" th:href="@{/atendente/chamados/mapa}" href="/atendente/chamados/mapa">Ver mapa de chamados</a>
+            </div>
+            <div class="dash-distribution-grid">
+                <div class="dash-panel dash-distribution-panel">
+                    <h3>Por setor responsável</h3>
+                    <p class="dash-panel-explainer">Até 5 setores com mais chamados ativos.</p>
+                    <div class="dash-bars" th:if="${!#lists.isEmpty(painel.setores)}">
+                        <div class="dash-bar-item" th:each="linha : ${painel.setores}">
+                            <div class="dash-bar-label"><span th:text="${linha.nome}">Obras</span><strong th:text="${linha.quantidade}">0</strong></div>
+                            <div class="dash-bar-track" role="img"
+                                 th:attr="aria-label=|${linha.nome}: ${linha.quantidade} chamados, ${linha.percentual}% dos ativos|">
+                                <span class="dash-bar-fill" th:style="|width: ${linha.percentual}%|"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="dash-empty" th:if="${#lists.isEmpty(painel.setores)}">Nenhum chamado ativo para apresentar.</p>
+                </div>
+                <div class="dash-panel dash-distribution-panel">
+                    <h3>Por categoria</h3>
+                    <p class="dash-panel-explainer">Até 5 categorias com mais chamados ativos.</p>
+                    <div class="dash-bars" th:if="${!#lists.isEmpty(painel.categorias)}">
+                        <div class="dash-bar-item" th:each="linha : ${painel.categorias}">
+                            <div class="dash-bar-label"><span th:text="${linha.nome}">Iluminação</span><strong th:text="${linha.quantidade}">0</strong></div>
+                            <div class="dash-bar-track" role="img"
+                                 th:attr="aria-label=|${linha.nome}: ${linha.quantidade} chamados, ${linha.percentual}% dos ativos|">
+                                <span class="dash-bar-fill" th:style="|width: ${linha.percentual}%|"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="dash-empty" th:if="${#lists.isEmpty(painel.categorias)}">Nenhum chamado ativo para apresentar.</p>
+                </div>
+            </div>
+            <p class="dash-footnote">A distribuição considera todos os chamados ativos, inclusive os que aguardam triagem ou resposta do cidadão. Os registros duplicados e encerrados ficam de fora.</p>
         </section>
 
         <section class="home-admin-section" aria-labelledby="titulo-cadastros">
@@ -78,6 +211,7 @@
                 </a>
             </div>
         </section>
+        <p class="dash-footnote">Total histórico de chamados registrados: <strong th:text="${painel.indicadores.totalRegistrados}">0</strong>, incluindo registros concluídos, recusados, cancelados e duplicados.</p>
     </main>
 
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>

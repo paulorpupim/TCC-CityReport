@@ -8,6 +8,9 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamado-detalhes-administracao.css}" href="/css/chamado-detalhes-administracao.css">
+    <!-- Slim Select só é utilizado na atribuição de funcionários (seção Informações). -->
+    <link th:if="${secao == 'informacoes'}" rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
     <link th:if="${secao == 'informacoes'}" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
@@ -200,25 +203,23 @@
                     </div>
                 </details>
 
-                <details class="admin-detail-disclosure" th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO'}">
+                <details id="secaoAtribuicaoFuncionario" class="admin-detail-disclosure" th:if="${chamado.status.name() == 'ABERTO' or chamado.status.name() == 'ATRIBUIDO'}">
                     <summary th:text="${chamado.status.name() == 'ATRIBUIDO' ? 'Alterar funcionário responsável' : 'Atribuir funcionário'}">Atribuir funcionário</summary>
                     <div class="admin-detail-disclosure-content">
                         <p class="admin-detail-help">Somente funcionários ativos do setor responsável.</p>
                         <form id="formAtribuicaoFuncionario" th:action="@{/atendente/chamados/{id}/atribuir(id=${chamado.id})}" method="post">
                             <div class="admin-detail-field">
-                                <label for="funcionarioBusca">Funcionário responsável</label>
-                                <input id="funcionarioBusca" type="text" list="opcoesFuncionariosAtribuicao"
-                                       placeholder="Digite o nome do funcionário" autocomplete="off" required
-                                       aria-describedby="ajudaFuncionarioBusca"
-                                       th:value="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.nome + ' (ID ' + chamado.funcionarioResponsavel.id + ')' : ''}">
-                                <datalist id="opcoesFuncionariosAtribuicao">
+                                <label for="funcionarioId">Funcionário responsável</label>
+                                <select id="funcionarioId" name="funcionarioId" required
+                                        aria-describedby="ajudaFuncionarioBusca erroFuncionarioAtribuicao">
+                                    <option value="">Selecione um funcionário</option>
                                     <option th:each="funcionario : ${funcionarios}"
-                                            th:value="|${funcionario.nome} (ID ${funcionario.id})|"
-                                            th:attr="data-funcionario-id=${funcionario.id}"></option>
-                                </datalist>
-                                <input id="funcionarioId" type="hidden" name="funcionarioId"
-                                       th:value="${chamado.funcionarioResponsavel != null ? chamado.funcionarioResponsavel.id : ''}">
-                                <p id="ajudaFuncionarioBusca" class="admin-detail-help">Digite parte do nome e selecione uma sugestão. O ID diferencia funcionários com nomes iguais.</p>
+                                            th:value="${funcionario.id}"
+                                            th:text="|${funcionario.nome} (ID ${funcionario.id})|"
+                                            th:selected="${chamado.funcionarioResponsavel != null and funcionario.id == chamado.funcionarioResponsavel.id}">Funcionário</option>
+                                </select>
+                                <p id="ajudaFuncionarioBusca" class="admin-detail-help">Pesquise pelo nome e selecione um funcionário. O ID diferencia funcionários com nomes iguais.</p>
+                                <p id="erroFuncionarioAtribuicao" class="admin-detail-help admin-detail-field-error" role="alert" hidden>Selecione um funcionário antes de salvar a atribuição.</p>
                             </div>
                             <p class="admin-detail-help" th:if="${#lists.isEmpty(funcionarios)}">Não existem funcionários ativos para esse setor.</p>
                             <button class="admin-detail-button admin-detail-button--primary" type="submit" th:disabled="${#lists.isEmpty(funcionarios)}">Salvar atribuição</button>
@@ -388,35 +389,50 @@
         </div>
     </main>
 
+    <script th:if="${secao == 'informacoes'}"
+            src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
     <script th:if="${secao == 'informacoes'}">
         (function () {
+            const painel = document.getElementById('secaoAtribuicaoFuncionario');
             const formulario = document.getElementById('formAtribuicaoFuncionario');
-            if (!formulario) return;
+            const funcionario = document.getElementById('funcionarioId');
+            const erro = document.getElementById('erroFuncionarioAtribuicao');
+            if (!painel || !formulario || !funcionario) return;
 
-            const campoBusca = document.getElementById('funcionarioBusca');
-            const campoId = document.getElementById('funcionarioId');
-            const opcoes = Array.from(document.querySelectorAll('#opcoesFuncionariosAtribuicao option'));
+            let iniciado = false;
 
-            function sincronizarFuncionario() {
-                const texto = campoBusca.value.trim();
-                const encontrado = opcoes.find((opcao) => opcao.value === texto);
-                campoId.value = encontrado ? encontrado.dataset.funcionarioId : '';
-                campoBusca.setCustomValidity(texto && !encontrado
-                    ? 'Selecione um funcionário da lista de sugestões.'
-                    : '');
+            function iniciarBuscaFuncionario() {
+                // Mantém o select nativo funcional caso a biblioteca não carregue.
+                if (iniciado || !painel.open || typeof SlimSelect !== 'function') return;
+
+                const seletor = new SlimSelect({
+                    select: '#funcionarioId',
+                    settings: {
+                        showSearch: true,
+                        searchPlaceholder: 'Pesquisar funcionário...',
+                        searchText: 'Nenhum funcionário encontrado',
+                        searchHighlight: true,
+                        placeholderText: 'Selecione um funcionário'
+                    }
+                });
+                iniciado = true;
+
+                // Um select substituído visualmente pode não receber o foco da validação nativa.
+                // Validamos no submit, preservando o atributo required para o fallback nativo.
+                formulario.noValidate = true;
+                funcionario.addEventListener('change', () => { erro.hidden = true; });
+                formulario.addEventListener('submit', (evento) => {
+                    if (!funcionario.value) {
+                        evento.preventDefault();
+                        erro.hidden = false;
+                        seletor.open();
+                    }
+                });
             }
 
-            campoBusca.addEventListener('input', sincronizarFuncionario);
-            campoBusca.addEventListener('change', sincronizarFuncionario);
-            formulario.addEventListener('submit', function (evento) {
-                sincronizarFuncionario();
-                if (!campoId.value) {
-                    evento.preventDefault();
-                    campoBusca.setCustomValidity('Selecione um funcionário da lista de sugestões.');
-                    campoBusca.reportValidity();
-                }
-            });
-            sincronizarFuncionario();
+            // O formulário fica dentro de um <details>: inicializa só quando aberto.
+            painel.addEventListener('toggle', iniciarBuscaFuncionario);
+            iniciarBuscaFuncionario();
         })();
     </script>
     <script th:if="${secao == 'informacoes'}" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

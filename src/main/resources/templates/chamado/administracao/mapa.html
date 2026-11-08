@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F172A">
+    <title>Mapa de chamados | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/mapa-chamados.css}" href="/css/mapa-chamados.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+</head>
+<body class="home-page mapa-chamados-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header th:replace="~{fragments/header :: atendente('mapa-chamados')}"></header>
+
+    <main class="home-container mapa-chamados-main" id="conteudo">
+        <div class="mapa-breadcrumb">
+            <a th:href="@{/}" href="/">Início</a>
+            <span aria-hidden="true">/</span>
+            <a th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+            <span aria-hidden="true">/</span>
+            <span>Mapa de chamados</span>
+        </div>
+
+        <header class="mapa-intro">
+            <div>
+                <p class="mapa-eyebrow">CITYREPORT · PLANEJAMENTO TERRITORIAL</p>
+                <h1>Mapa de chamados</h1>
+                <p>Consulte onde os problemas foram registrados, filtre as ocorrências e acesse os detalhes de cada chamado.</p>
+            </div>
+            <a class="mapa-link-filas" th:href="@{/atendente/chamados}" href="/atendente/chamados">Gerenciar chamados <span aria-hidden="true">→</span></a>
+        </header>
+
+        <section class="mapa-resumo" aria-label="Resumo dos chamados por localização">
+            <div class="mapa-resumo-item">
+                <span>Total de chamados</span>
+                <strong th:text="${totalChamados}">0</strong>
+            </div>
+            <div class="mapa-resumo-item">
+                <span>Com localização válida</span>
+                <strong th:text="${#lists.size(pontos)}">0</strong>
+            </div>
+            <div class="mapa-resumo-item">
+                <span>Sem localização no mapa</span>
+                <strong th:text="${semLocalizacao}">0</strong>
+            </div>
+        </section>
+
+        <section class="mapa-filtros" aria-labelledby="mapa-titulo-filtros">
+            <div class="mapa-filtros-cabecalho">
+                <h2 id="mapa-titulo-filtros">Filtrar ocorrências</h2>
+                <button type="button" id="limpar-filtros" class="mapa-limpar">Limpar filtros</button>
+            </div>
+            <div class="mapa-filtros-grid">
+                <div class="mapa-campo mapa-busca">
+                    <label for="filtro-busca">Protocolo ou título</label>
+                    <input id="filtro-busca" type="search" placeholder="Pesquise um chamado" autocomplete="off">
+                </div>
+                <div class="mapa-campo">
+                    <label for="filtro-status">Status</label>
+                    <select id="filtro-status">
+                        <option value="">Todos os status</option>
+                        <option value="ENVIADO">Enviado</option>
+                        <option value="AGUARDANDO_INFORMACOES">Aguardando informações</option>
+                        <option value="ABERTO">Aberto</option>
+                        <option value="ATRIBUIDO">Atribuído</option>
+                        <option value="EM_EXECUCAO">Em execução</option>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="AGUARDANDO_VALIDACAO">Aguardando validação</option>
+                        <option value="RESOLVIDO">Resolvido</option>
+                        <option value="RECUSADO">Recusado</option>
+                        <option value="CANCELADO">Cancelado</option>
+                        <option value="DUPLICADO">Duplicado</option>
+                    </select>
+                </div>
+                <div class="mapa-campo">
+                    <label for="filtro-prioridade">Prioridade oficial</label>
+                    <select id="filtro-prioridade">
+                        <option value="">Todas as prioridades</option>
+                        <option value="CRITICA">Crítica</option>
+                        <option value="ALTA">Alta</option>
+                        <option value="MEDIA">Média</option>
+                        <option value="BAIXA">Baixa</option>
+                        <option value="SEM_PRIORIDADE">Ainda não definida</option>
+                    </select>
+                </div>
+                <div class="mapa-campo">
+                    <label for="filtro-setor">Setor</label>
+                    <select id="filtro-setor"><option value="">Todos os setores</option></select>
+                </div>
+                <div class="mapa-campo">
+                    <label for="filtro-categoria">Categoria</label>
+                    <select id="filtro-categoria"><option value="">Todas as categorias</option></select>
+                </div>
+            </div>
+        </section>
+
+        <section class="mapa-painel" aria-labelledby="mapa-titulo-visualizacao">
+            <div class="mapa-painel-cabecalho">
+                <div>
+                    <h2 id="mapa-titulo-visualizacao">Localização das ocorrências</h2>
+                    <p id="mapa-contagem" role="status" aria-live="polite">Carregando as ocorrências...</p>
+                </div>
+                <button type="button" class="mapa-centralizar" id="mapa-centralizar">Enquadrar marcadores</button>
+            </div>
+            <div id="mapa-chamados" class="mapa-visualizacao" role="region"
+                 aria-label="Mapa interativo com a localização dos chamados da prefeitura"></div>
+            <p id="mapa-aviso" class="mapa-aviso" role="status" hidden></p>
+            <div class="mapa-legenda" aria-label="Legenda dos marcadores">
+                <span><i class="mapa-legenda-cor mapa-cor-critica" aria-hidden="true"></i>Crítica</span>
+                <span><i class="mapa-legenda-cor mapa-cor-alta" aria-hidden="true"></i>Alta</span>
+                <span><i class="mapa-legenda-cor mapa-cor-media" aria-hidden="true"></i>Média</span>
+                <span><i class="mapa-legenda-cor mapa-cor-baixa" aria-hidden="true"></i>Baixa</span>
+                <span><i class="mapa-legenda-cor mapa-cor-indefinida" aria-hidden="true"></i>Sem prioridade</span>
+                <span><i class="mapa-legenda-cor mapa-cor-resolvida" aria-hidden="true"></i>Resolvido</span>
+                <span><i class="mapa-legenda-cor mapa-cor-encerrada" aria-hidden="true"></i>Outros encerrados</span>
+            </div>
+            <p class="mapa-observacao">As cores representam a prioridade oficial dos chamados ativos. Chamados resolvidos e outros encerrados possuem cores próprias. Pontos na mesma localização são agrupados.</p>
+        </section>
+
+        <!-- Dados escapados pelo Thymeleaf. JavaScript usa textContent nos popups:
+             nenhum texto fornecido pelo cidadao e interpretado como HTML. -->
+        <div id="mapa-registros" hidden>
+            <div th:each="ponto : ${pontos}" class="mapa-registro"
+                 th:attr="data-id=${ponto.id},
+                          data-protocolo=${ponto.protocolo},
+                          data-titulo=${ponto.titulo},
+                          data-endereco=${ponto.endereco},
+                          data-setor-id=${ponto.setorId},
+                          data-setor=${ponto.setor},
+                          data-categoria-id=${ponto.categoriaId},
+                          data-categoria=${ponto.categoria},
+                          data-status=${ponto.status.name()},
+                          data-prioridade=${ponto.prioridadeOficial != null ? ponto.prioridadeOficial.name() : ''},
+                          data-urgencia=${ponto.urgenciaPercebida != null ? ponto.urgenciaPercebida.name() : ''},
+                          data-latitude=${ponto.latitude},
+                          data-longitude=${ponto.longitude}"></div>
+        </div>
+    </main>
+
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script defer th:src="@{/js/mapa-chamados.js}" src="/js/mapa-chamados.js"></script>
+</body>
+</html>
