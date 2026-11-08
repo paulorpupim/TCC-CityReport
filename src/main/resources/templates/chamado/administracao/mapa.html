@@ -10,6 +10,9 @@
     <link rel="stylesheet" th:href="@{/css/mapa-chamados.css}" href="/css/mapa-chamados.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
 <body class="home-page mapa-chamados-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -60,7 +63,7 @@
                 </div>
                 <div class="mapa-campo">
                     <label for="filtro-status">Status</label>
-                    <select id="filtro-status">
+                    <select id="filtro-status" class="cr-slim-select" data-slim-search="simple">
                         <option value="">Todos os status</option>
                         <option value="ENVIADO">Enviado</option>
                         <option value="AGUARDANDO_INFORMACOES">Aguardando informações</option>
@@ -77,7 +80,7 @@
                 </div>
                 <div class="mapa-campo">
                     <label for="filtro-prioridade">Prioridade oficial</label>
-                    <select id="filtro-prioridade">
+                    <select id="filtro-prioridade" class="cr-slim-select" data-slim-search="simple">
                         <option value="">Todas as prioridades</option>
                         <option value="CRITICA">Crítica</option>
                         <option value="ALTA">Alta</option>
@@ -88,11 +91,11 @@
                 </div>
                 <div class="mapa-campo">
                     <label for="filtro-setor">Setor</label>
-                    <select id="filtro-setor"><option value="">Todos os setores</option></select>
+                    <select id="filtro-setor" class="cr-slim-select" data-slim-search="search"><option value="">Todos os setores</option></select>
                 </div>
                 <div class="mapa-campo">
                     <label for="filtro-categoria">Categoria</label>
-                    <select id="filtro-categoria"><option value="">Todas as categorias</option></select>
+                    <select id="filtro-categoria" class="cr-slim-select" data-slim-search="search"><option value="">Todas as categorias</option></select>
                 </div>
             </div>
         </section>
@@ -143,6 +146,8 @@
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
+    <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
     <script defer th:src="@{/js/mapa-chamados.js}" src="/js/mapa-chamados.js"></script>
 </body>
 </html>

@@ -77,6 +77,8 @@
         if (Array.from(filtros.categoria.options).some(o => o.value === categoriaAtual)) {
             filtros.categoria.value = categoriaAtual;
         }
+        // A categoria muda quando o setor é filtrado: atualizar a lista visível.
+        window.CityReportSelects?.atualizarOpcoes(filtros.categoria);
     }
     atualizarCategorias();
 
@@ -208,8 +210,13 @@
         });
     });
     document.getElementById('limpar-filtros').addEventListener('click', () => {
-        Object.values(filtros).forEach(el => { el.value = ''; });
+        filtros.busca.value = '';
+        // Mudar o .value do select nativo sozinho não atualiza a interface Slim.
+        for (const campo of [filtros.status, filtros.prioridade, filtros.setor]) {
+            window.CityReportSelects?.definirValor(campo, '');
+        }
         atualizarCategorias();
+        window.CityReportSelects?.definirValor(filtros.categoria, '');
         aplicarFiltros();
         filtros.busca.focus();
     });

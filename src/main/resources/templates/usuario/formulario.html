@@ -8,6 +8,9 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/cadastros-administracao.css}" href="/css/cadastros-administracao.css">
+    <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
 <body class="home-page admin-crud-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -37,7 +40,7 @@
                     </div>
                     <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar')}">
                         <label for="perfil">Perfil de acesso <span aria-hidden="true">*</span></label>
-                        <select id="perfil" th:field="*{perfil}" required th:attr="aria-invalid=${#fields.hasErrors('perfil')}">
+                        <select id="perfil" th:field="*{perfil}" required th:attr="aria-invalid=${#fields.hasErrors('perfil')}" class="cr-slim-select" data-slim-search="simple">
                             <option value="">Selecione um perfil</option>
                             <option value="ATENDENTE">Atendente</option>
                             <option value="FUNCIONARIO">Funcionário de campo</option>
@@ -52,7 +55,7 @@
                     </div>
                     <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}">
                         <label for="setorId">Setor <span class="admin-crud-label-note">obrigatório para funcionário</span></label>
-                        <select id="setorId" th:field="*{setorId}" th:attr="aria-invalid=${#fields.hasErrors('setorId')}">
+                        <select id="setorId" th:field="*{setorId}" th:attr="aria-invalid=${#fields.hasErrors('setorId')}" class="cr-slim-select" data-slim-search="search">
                             <option value="">Selecione um setor</option>
                             <option th:each="setor : ${setores}" th:value="${setor.id}" th:text="${setor.nome}">Obras</option>
                         </select>
@@ -85,5 +88,7 @@
         </div>
     </main>
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
+    <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
 </body>
 </html>

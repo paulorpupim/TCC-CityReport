@@ -41,6 +41,7 @@ public class ChamadoService {
     private final CategoriaService categoriaService;
     private final HistoricoChamadoService historicoChamadoService;
     private final FotoChamadoService fotoChamadoService;
+    private final AreaAtendida areaAtendida;
 
     // Consultas administrativas: lista todos os chamados e busca um pelo ID.
     public List<Chamado> listarTodos() {
@@ -260,6 +261,10 @@ public class ChamadoService {
         if (latitude != null && (!Double.isFinite(latitude) || !Double.isFinite(longitude)
                 || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)) {
             throw new IllegalArgumentException("As coordenadas informadas sao invalidas.");
+        }
+        if (latitude != null && !areaAtendida.contem(latitude, longitude)) {
+            throw new IllegalArgumentException(
+                    "A localizacao selecionada esta fora da area atendida pela prefeitura.");
         }
     }
 }

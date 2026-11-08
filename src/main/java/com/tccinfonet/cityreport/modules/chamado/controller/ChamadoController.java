@@ -36,6 +36,7 @@ import com.tccinfonet.cityreport.modules.chamado.dto.CriarChamadoDTO;
 import com.tccinfonet.cityreport.modules.chamado.entity.Chamado;
 import com.tccinfonet.cityreport.modules.chamado.enums.Prioridade;
 import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
+import com.tccinfonet.cityreport.modules.chamado.service.AreaAtendida;
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoAtendenteService;
 import com.tccinfonet.cityreport.modules.chamado.service.ChamadoService;
 import com.tccinfonet.cityreport.modules.usuario.entity.Usuario;
@@ -58,6 +59,7 @@ public class ChamadoController {
     private final UsuarioService usuarioService;
     private final FotoChamadoService fotoChamadoService;
     private final HistoricoChamadoService historicoChamadoService;
+    private final AreaAtendida areaAtendida;
 
     // ======================= AREA DO CIDADAO =======================
     // Tambem pode ser utilizada na web por atendentes e funcionarios como usuarios comuns.
@@ -469,6 +471,7 @@ public class ChamadoController {
                 .filter(c -> c.getSetor() != null && Boolean.TRUE.equals(c.getSetor().getAtivo()))
                 .toList());
         model.addAttribute("prioridades", Prioridade.values());
+        model.addAttribute("areaAtendida", areaAtendida);
         return "chamado/novo";
     }
 

@@ -1,0 +1,51 @@
+/* Visual único dos selects do CityReport; válido para buscas e listas pequenas. */
+body {
+    --ss-primary-color: var(--cr-ciano, #2B9DF4);
+    --ss-bg-color: #ffffff;
+    --ss-font-color: var(--cr-marinho, #192231);
+    --ss-border-color: #c5d2e1;
+    --ss-border-radius: .6rem;
+    --ss-main-height: 44px;
+}
+
+/* O dropdown é posicionado pela biblioteca fora do campo. */
+.ss-content {
+    --ss-primary-color: #2b9df4;
+    --ss-bg-color: #ffffff;
+    --ss-font-color: #192231;
+    --ss-border-color: #c5d2e1;
+    --ss-border-radius: .6rem;
+    z-index: 1800; /* Acima do Leaflet (1000), sem encobrir o cabeçalho inteiro. */
+    font-family: var(--cr-fonte, Inter, system-ui, sans-serif);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+}
+.ss-content .ss-option {
+    overflow-wrap: anywhere;
+}
+.ss-main {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    font-family: var(--cr-fonte, Inter, system-ui, sans-serif);
+    font-size: .88rem;
+    font-weight: 500;
+    border-radius: .6rem;
+}
+.ss-main:focus-visible, .ss-main:focus-within {
+    outline: 2px solid rgba(43,157,244,.5);
+    outline-offset: 2px;
+}
+.admin-crud-page .admin-crud-field .ss-main { min-height: 46px; }
+.new-request-page .new-request-field .ss-main { min-height: 47px; background: #fbfcfe; }
+.admin-detail-page .admin-detail-field .ss-main { min-height: 44px; font-size: .84rem; }
+.mapa-chamados-page .mapa-campo .ss-main { min-height: 42px; font-size: .8rem; }
+
+/* Mesma sinalização de erro do select nativo quando a validação do servidor falha. */
+.admin-crud-field:has(select[aria-invalid="true"]) .ss-main,
+.new-request-field:has(select[aria-invalid="true"]) .ss-main,
+.cr-slim-error .ss-main { border-color: #cc0000; }
+
+/* Selects permanecem nativos e utilizáveis se o CDN não carregar. */
+@media (prefers-reduced-motion: reduce) {
+    .ss-main, .ss-content { transition: none; }
+}

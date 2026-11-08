@@ -13,6 +13,9 @@
     <!-- Leaflet 1.9.4: manter o CSS da biblioteca para mapa e marcadores. -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
 <body class="home-page new-request-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -83,7 +86,7 @@
                             <div class="new-request-field">
                                 <label for="categoriaId">Categoria <span class="new-request-required" aria-label="obrigatório">*</span></label>
                                 <select id="categoriaId" th:field="*{categoriaId}" name="categoriaId" required
-                                        th:attr="aria-invalid=${#fields.hasErrors('categoriaId')}">
+                                        th:attr="aria-invalid=${#fields.hasErrors('categoriaId')}" class="cr-slim-select" data-slim-search="search">
                                     <option value="">Selecione uma categoria</option>
                                     <option th:each="categoria : ${categorias}" th:value="${categoria.id}"
                                             th:text="${categoria.nome + ' - ' + categoria.setor.nome}"></option>
@@ -94,7 +97,7 @@
                             <div class="new-request-field">
                                 <label for="urgenciaPercebida">Urgência percebida <span class="new-request-required" aria-label="obrigatório">*</span></label>
                                 <select id="urgenciaPercebida" th:field="*{urgenciaPercebida}" name="urgenciaPercebida" required
-                                        th:attr="aria-invalid=${#fields.hasErrors('urgenciaPercebida')}">
+                                        th:attr="aria-invalid=${#fields.hasErrors('urgenciaPercebida')}" class="cr-slim-select" data-slim-search="simple">
                                     <option value="">Selecione a urgência</option>
                                     <option th:each="prioridade : ${prioridades}" th:value="${prioridade}"
                                             th:text="${prioridade}"></option>
@@ -141,7 +144,7 @@
                                 <span class="new-request-option-number" aria-hidden="true">2</span>
                                 <div>
                                     <h3>Marcar no mapa</h3>
-                                    <p>O mapa começa em Estrela d'Oeste (SP). Clique para marcar o ponto ou arraste o marcador.</p>
+                                    <p>O mapa começa em Estrela d'Oeste (SP). Você pode navegar livremente, mas só marcar pontos na região atendida pela prefeitura.</p>
                                 </div>
                             </div>
 
@@ -161,16 +164,17 @@
                             </div>
 
                             <p class="new-request-map-message" id="mensagem-mapa" role="status" aria-live="polite">
-                                O mapa está centralizado em Estrela d'Oeste. Clique nele para selecionar o local do problema.
+                                Clique dentro da área indicada em azul para marcar a localização do problema.
                             </p>
                             <div id="mapa-chamado" class="new-request-map" role="region"
+                                 th:attr="data-lat-min=${areaAtendida.latitudeMinima},data-lat-max=${areaAtendida.latitudeMaxima},data-lng-min=${areaAtendida.longitudeMinima},data-lng-max=${areaAtendida.longitudeMaxima}"
                                  aria-label="Mapa de Estrela d'Oeste para marcar a localização do problema"></div>
 
                             <!-- Campos de coordenadas originais, preenchidos exclusivamente pelo mapa. -->
                             <input type="hidden" id="latitude" th:field="*{latitude}" name="latitude">
                             <input type="hidden" id="longitude" th:field="*{longitude}" name="longitude">
 
-                            <p class="new-request-map-tip">A localização do dispositivo pode ser imprecisa. Confira o marcador antes de registrar. Centralizar na cidade não altera a marcação.</p>
+                            <p class="new-request-map-tip">A borda azul indica a área aproximada atendida, incluindo arredores do município. A navegação é livre. Confira a precisão da localização do dispositivo antes de registrar.</p>
                             <noscript><p class="new-request-map-tip">Para usar o mapa, habilite o JavaScript. Você pode informar o endereço no campo acima.</p></noscript>
                         </div>
                     </section>
@@ -229,6 +233,7 @@
             const botaoLocalizacao = document.getElementById('usar-localizacao');
             const botaoCentralizar = document.getElementById('centralizar-cidade');
             const botaoLimpar = document.getElementById('limpar-marcacao');
+            const elementoMapa = document.getElementById('mapa-chamado');
 
             if (typeof L === 'undefined') {
                 mensagem.textContent = 'O mapa não pôde ser carregado. Você ainda pode informar o endereço por escrito.';
@@ -237,12 +242,32 @@
 
             // Centro aproximado da zona urbana de Estrela d'Oeste (SP).
             // Apenas posiciona a visualizacao: nao cria marcador nem envia coordenadas.
-            const centroCidade = [-20.286, -50.396];
+            const centroCidade = [-20.286, -50.399];
             const zoomCidade = 15;
+            // Valores enviados pelo Controller a partir do application.properties.
+            const limites = [
+                Number(elementoMapa.dataset.latMin),
+                Number(elementoMapa.dataset.lngMin),
+                Number(elementoMapa.dataset.latMax),
+                Number(elementoMapa.dataset.lngMax)
+            ];
+            if (limites.some(valor => !Number.isFinite(valor))
+                    || limites[0] >= limites[2] || limites[1] >= limites[3]) {
+                mensagem.textContent = 'A área atendida está indisponível. Informe o endereço por escrito.';
+                return;
+            }
+            const areaPermitida = L.latLngBounds(
+                [limites[0], limites[1]], [limites[2], limites[3]]
+            );
             const mapa = L.map('mapa-chamado').setView(centroCidade, zoomCidade);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; contribuidores do OpenStreetMap'
+            }).addTo(mapa);
+            // Apenas indica a região; não limita a navegação ou o zoom do mapa.
+            L.rectangle(areaPermitida, {
+                color: '#2B9DF4', weight: 2, dashArray: '7 5',
+                fillColor: '#2B9DF4', fillOpacity: 0.06, interactive: false
             }).addTo(mapa);
 
             let marcador = null;
@@ -254,8 +279,10 @@
             }
 
             function marcarPonto(latitude, longitude, centralizar) {
-                if (!coordenadasValidas(latitude, longitude)) {
-                    return;
+                if (!coordenadasValidas(latitude, longitude)
+                        || !areaPermitida.contains([latitude, longitude])) {
+                    mensagem.textContent = 'Localização fora da área atendida. Escolha um ponto dentro do retângulo azul.';
+                    return false;
                 }
 
                 const ponto = [latitude, longitude];
@@ -265,7 +292,12 @@
                     marcador = L.marker(ponto, { draggable: true }).addTo(mapa);
                     marcador.on('dragend', () => {
                         const destino = marcador.getLatLng();
-                        marcarPonto(destino.lat, destino.lng, false);
+                        if (!marcarPonto(destino.lat, destino.lng, false)) {
+                            // O marcador volta ao ultimo ponto valido apos arrastar para fora.
+                            marcador.setLatLng([
+                                Number(latitudeInput.value), Number(longitudeInput.value)
+                            ]);
+                        }
                     });
                 }
 
@@ -276,6 +308,7 @@
                 if (centralizar) {
                     mapa.setView(ponto, Math.max(mapa.getZoom(), 16));
                 }
+                return true;
             }
 
             mapa.on('click', (evento) => {
@@ -289,8 +322,9 @@
                 }
                 const latitude = Number(latitudeInput.value);
                 const longitude = Number(longitudeInput.value);
-                if (coordenadasValidas(latitude, longitude)) {
-                    marcarPonto(latitude, longitude, true);
+                if (!marcarPonto(latitude, longitude, true)) {
+                    latitudeInput.value = '';
+                    longitudeInput.value = '';
                 }
             }
             latitudeInput.addEventListener('change', atualizarMarcadorPelosCampos);
@@ -301,7 +335,7 @@
                 mapa.setView(centroCidade, zoomCidade);
                 mensagem.textContent = marcador
                     ? 'Mapa centralizado em Estrela d\'Oeste. O ponto anteriormente marcado foi mantido.'
-                    : 'Mapa centralizado em Estrela d\'Oeste. Clique para selecionar o local do problema.';
+                    : 'Mapa centralizado em Estrela d\'Oeste. Selecione um ponto dentro da área azul.';
             });
 
             botaoLimpar.addEventListener('click', () => {
@@ -323,8 +357,9 @@
                 mensagem.textContent = 'Solicitando permissão para acessar sua localização...';
                 navigator.geolocation.getCurrentPosition(
                     (posicao) => {
-                        marcarPonto(posicao.coords.latitude, posicao.coords.longitude, true);
-                        mensagem.textContent = 'Localização atual marcada. Confira se é onde está o problema.';
+                        if (marcarPonto(posicao.coords.latitude, posicao.coords.longitude, true)) {
+                            mensagem.textContent = 'Localização atual marcada. Confira se é onde está o problema.';
+                        }
                     },
                     () => {
                         mensagem.textContent = 'Não foi possível obter sua localização. Clique no mapa para marcar o problema.';
@@ -334,5 +369,7 @@
             });
         })();
     </script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
+    <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
 </body>
 </html>

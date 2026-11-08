@@ -8,11 +8,11 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamado-detalhes-administracao.css}" href="/css/chamado-detalhes-administracao.css">
-    <!-- Slim Select só é utilizado na atribuição de funcionários (seção Informações). -->
-    <link th:if="${secao == 'informacoes'}" rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
     <link th:if="${secao == 'informacoes'}" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
 <body class="home-page admin-detail-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -144,7 +144,7 @@
                     <div class="admin-detail-disclosure-content">
                         <form th:action="@{/atendente/chamados/{id}/aprovar-triagem(id=${chamado.id})}" method="post">
                             <div class="admin-detail-field"><label for="categoriaId">Categoria definitiva</label>
-                                <select id="categoriaId" name="categoriaId" required>
+                                <select id="categoriaId" name="categoriaId" required class="cr-slim-select" data-slim-search="search">
                                     <option value="">Selecione uma categoria</option>
                                     <option th:each="categoria : ${categorias}" th:value="${categoria.id}"
                                             th:text="${categoria.nome + ' - ' + categoria.setor.nome}"
@@ -152,7 +152,7 @@
                                 </select>
                             </div>
                             <div class="admin-detail-field"><label for="prioridadeTriagem">Prioridade oficial</label>
-                                <select id="prioridadeTriagem" name="prioridadeOficial" required>
+                                <select id="prioridadeTriagem" name="prioridadeOficial" required class="cr-slim-select" data-slim-search="simple">
                                     <option value="">Selecione a prioridade</option>
                                     <option th:each="prioridade : ${prioridades}" th:value="${prioridade}" th:text="${prioridade}">Prioridade</option>
                                 </select>
@@ -193,7 +193,7 @@
                     <div class="admin-detail-disclosure-content">
                         <form th:action="@{/atendente/chamados/{id}/prioridade(id=${chamado.id})}" method="post">
                             <div class="admin-detail-field"><label for="novaPrioridade">Prioridade oficial</label>
-                                <select id="novaPrioridade" name="prioridadeOficial" required>
+                                <select id="novaPrioridade" name="prioridadeOficial" required class="cr-slim-select" data-slim-search="simple">
                                     <option th:each="prioridade : ${prioridades}" th:value="${prioridade}" th:text="${prioridade}"
                                             th:selected="${prioridade == chamado.prioridadeOficial}">Prioridade</option>
                                 </select>
@@ -211,7 +211,7 @@
                             <div class="admin-detail-field">
                                 <label for="funcionarioId">Funcionário responsável</label>
                                 <select id="funcionarioId" name="funcionarioId" required
-                                        aria-describedby="ajudaFuncionarioBusca erroFuncionarioAtribuicao">
+                                        aria-describedby="ajudaFuncionarioBusca erroFuncionarioAtribuicao" class="cr-slim-select" data-slim-search="search">
                                     <option value="">Selecione um funcionário</option>
                                     <option th:each="funcionario : ${funcionarios}"
                                             th:value="${funcionario.id}"
@@ -285,7 +285,7 @@
                     <div class="admin-detail-disclosure-content">
                         <form th:action="@{/atendente/chamados/{id}/retomar(id=${chamado.id})}" method="post">
                             <div class="admin-detail-field"><label for="funcionarioRetomada">Responsável pela retomada</label>
-                                <select id="funcionarioRetomada" name="funcionarioId">
+                                <select id="funcionarioRetomada" name="funcionarioId" class="cr-slim-select" data-slim-search="search">
                                     <option value="">Manter funcionário atual</option>
                                     <option th:each="funcionario : ${funcionarios}" th:value="${funcionario.id}" th:text="${funcionario.nome}">Funcionário</option>
                                 </select>
@@ -354,7 +354,7 @@
                                 <textarea id="justificativaReprovacao" name="justificativa" rows="4" maxlength="1700" required></textarea>
                             </div>
                             <div class="admin-detail-field"><label for="novoFuncionarioId">Responsável pela nova execução</label>
-                                <select id="novoFuncionarioId" name="novoFuncionarioId">
+                                <select id="novoFuncionarioId" name="novoFuncionarioId" class="cr-slim-select" data-slim-search="search">
                                     <option value="">Manter funcionário atual</option>
                                     <option th:each="funcionario : ${funcionarios}" th:value="${funcionario.id}" th:text="${funcionario.nome}">Funcionário</option>
                                 </select>
@@ -388,53 +388,6 @@
             </section>
         </div>
     </main>
-
-    <script th:if="${secao == 'informacoes'}"
-            src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
-    <script th:if="${secao == 'informacoes'}">
-        (function () {
-            const painel = document.getElementById('secaoAtribuicaoFuncionario');
-            const formulario = document.getElementById('formAtribuicaoFuncionario');
-            const funcionario = document.getElementById('funcionarioId');
-            const erro = document.getElementById('erroFuncionarioAtribuicao');
-            if (!painel || !formulario || !funcionario) return;
-
-            let iniciado = false;
-
-            function iniciarBuscaFuncionario() {
-                // Mantém o select nativo funcional caso a biblioteca não carregue.
-                if (iniciado || !painel.open || typeof SlimSelect !== 'function') return;
-
-                const seletor = new SlimSelect({
-                    select: '#funcionarioId',
-                    settings: {
-                        showSearch: true,
-                        searchPlaceholder: 'Pesquisar funcionário...',
-                        searchText: 'Nenhum funcionário encontrado',
-                        searchHighlight: true,
-                        placeholderText: 'Selecione um funcionário'
-                    }
-                });
-                iniciado = true;
-
-                // Um select substituído visualmente pode não receber o foco da validação nativa.
-                // Validamos no submit, preservando o atributo required para o fallback nativo.
-                formulario.noValidate = true;
-                funcionario.addEventListener('change', () => { erro.hidden = true; });
-                formulario.addEventListener('submit', (evento) => {
-                    if (!funcionario.value) {
-                        evento.preventDefault();
-                        erro.hidden = false;
-                        seletor.open();
-                    }
-                });
-            }
-
-            // O formulário fica dentro de um <details>: inicializa só quando aberto.
-            painel.addEventListener('toggle', iniciarBuscaFuncionario);
-            iniciarBuscaFuncionario();
-        })();
-    </script>
     <script th:if="${secao == 'informacoes'}" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script th:if="${secao == 'informacoes'}">
@@ -459,5 +412,7 @@
             L.marker([lat, lng]).addTo(mapa).bindPopup('Local informado no chamado.');
         })();
     </script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
+    <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
 </body>
 </html>

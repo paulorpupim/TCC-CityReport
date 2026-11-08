@@ -8,6 +8,9 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/cadastros-administracao.css}" href="/css/cadastros-administracao.css">
+    <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
 <body class="home-page admin-crud-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -33,7 +36,7 @@
                     </div>
                     <div class="admin-crud-field">
                         <label for="setor">Setor responsável <span aria-hidden="true">*</span></label>
-                        <select id="setor" th:field="*{setor.id}" required th:attr="aria-invalid=${#fields.hasErrors('setor')}">
+                        <select id="setor" th:field="*{setor.id}" required th:attr="aria-invalid=${#fields.hasErrors('setor')}" class="cr-slim-select" data-slim-search="search">
                             <option value="">Selecione um setor</option>
                             <option th:each="setor : ${setores}" th:value="${setor.id}" th:text="${setor.nome}">Obras</option>
                         </select>
@@ -56,5 +59,7 @@
         </div>
     </main>
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
+    <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
 </body>
 </html>
