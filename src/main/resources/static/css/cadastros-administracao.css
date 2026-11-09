@@ -111,3 +111,64 @@
  .admin-crud-page .admin-crud-hero > .admin-crud-button { width: 100%; }
 }
 @media(prefers-reduced-motion:reduce){ .admin-crud-page .admin-crud-button { transition:none; } }
+
+
+/* Cadastro de usuários: opções de perfil em cartões selecionáveis. */
+.admin-crud-page .admin-crud-perfil {
+    border: 0;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    min-width: 0;
+}
+.admin-crud-page .admin-crud-perfil legend {
+    padding: 0;
+    margin-bottom: .55rem;
+    font-size: .88rem;
+    font-weight: 750;
+}
+.admin-crud-page .admin-crud-perfil legend span[aria-hidden="true"] { color: #a10000; }
+.admin-crud-page .admin-crud-perfil-opcoes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+}
+.admin-crud-page .admin-crud-perfil-opcao {
+    display: flex;
+    gap: .7rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #cbd7e4;
+    border-radius: .7rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.admin-crud-page .admin-crud-perfil-opcao:hover { border-color: #2b9df4; }
+.admin-crud-page .admin-crud-perfil-opcao:has(input:checked) {
+    background: #eff8ff;
+    border-color: #2377b9;
+    box-shadow: 0 0 0 2px rgba(43, 157, 244, .13);
+}
+.admin-crud-page .admin-crud-perfil-opcao:focus-within {
+    outline: 2px solid #2b9df4;
+    outline-offset: 2px;
+}
+.admin-crud-page .admin-crud-perfil-opcao input[type="radio"] {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    margin: 2px 0 0;
+    accent-color: #2377b9;
+    cursor: pointer;
+}
+.admin-crud-page .admin-crud-perfil-conteudo { display: grid; gap: .25rem; min-width: 0; }
+.admin-crud-page .admin-crud-perfil-conteudo strong { font-size: .88rem; color: #192231; }
+.admin-crud-page .admin-crud-perfil-conteudo small { color: #596d83; font-size: .76rem; line-height: 1.45; }
+.admin-crud-page .admin-crud-campo-setor[hidden] { display: none; }
+@media (max-width: 600px) {
+    .admin-crud-page .admin-crud-perfil-opcoes { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .admin-crud-page .admin-crud-perfil-opcao { transition: none; }
+}

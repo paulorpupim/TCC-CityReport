@@ -6,6 +6,9 @@ import java.util.Optional;
 
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,6 +23,11 @@ import com.tccinfonet.cityreport.modules.chamado.enums.StatusChamado;
 
 @Repository
 public interface ChamadoRepository extends JpaRepository<Chamado, Long>, JpaSpecificationExecutor<Chamado> {
+
+        // Evita consultas adicionais por linha ao montar e exportar os relatórios.
+        @Override
+        @EntityGraph(attributePaths = {"categoria", "categoria.setor"})
+        Page<Chamado> findAll(Specification<Chamado> especificacao, Pageable pageable);
 
         List<Chamado> findAllByOrderByDataCriacaoDesc();
 
@@ -67,10 +75,20 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long>, JpaSpec
                 FROM Chamado c
                 JOIN c.categoria categoria
                 JOIN categoria.setor setor
-                WHERE c.latitude IS NOT NULL AND c.longitude IS NOT NULL
+                WHERE c.dataCriacao >= :inicio AND c.dataCriacao < :fimExclusivo
+                  AND c.latitude IS NOT NULL AND c.longitude IS NOT NULL
                 ORDER BY c.dataCriacao DESC
                 """)
-        List<PontoChamadoDTO> listarPontosDoMapa();
+        List<PontoChamadoDTO> listarPontosDoMapa(
+                        @Param("inicio") LocalDateTime inicio,
+                        @Param("fimExclusivo") LocalDateTime fimExclusivo);
+
+        // Filtros de data do mapa (sem carregar entidades inteiras).
+        long countByDataCriacaoGreaterThanEqualAndDataCriacaoLessThan(
+                        LocalDateTime inicio, LocalDateTime fimExclusivo);
+
+        @Query("SELECT MIN(c.dataCriacao) FROM Chamado c")
+        LocalDateTime buscarPrimeiraDataCriacao();
 
         // Agregacoes do dashboard: evita carregar todos os chamados em memoria.
         @Query("SELECT c.status, COUNT(c) FROM Chamado c GROUP BY c.status")

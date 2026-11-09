@@ -24,7 +24,7 @@
         </section>
         <div class="admin-crud-form-layout">
             <section class="admin-crud-panel admin-crud-form-panel" aria-label="Formulário de cadastro">
-                <form class="admin-crud-form" th:action="${acao}" th:object="${usuarioDTO}" method="post">
+                <form class="admin-crud-form" data-validar-confirmacao-senha th:action="${acao}" th:object="${usuarioDTO}" method="post">
                     <div class="admin-crud-validation" role="alert" th:if="${#fields.hasGlobalErrors()}">
                         <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Revise os dados.</p>
                     </div>
@@ -38,24 +38,41 @@
                         <input type="email" id="email" th:field="*{email}" maxlength="150" autocomplete="email" required placeholder="usuario@exemplo.com" th:attr="aria-invalid=${#fields.hasErrors('email')}">
                         <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">E-mail inválido.</p>
                     </div>
-                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar')}">
-                        <label for="perfil">Perfil de acesso <span aria-hidden="true">*</span></label>
-                        <select id="perfil" th:field="*{perfil}" required th:attr="aria-invalid=${#fields.hasErrors('perfil')}" class="cr-slim-select" data-slim-search="simple">
-                            <option value="">Selecione um perfil</option>
-                            <option value="ATENDENTE">Atendente</option>
-                            <option value="FUNCIONARIO">Funcionário de campo</option>
-                        </select>
-                        <p class="admin-crud-field-help">O perfil determina as funcionalidades disponíveis.</p>
+                    <fieldset class="admin-crud-perfil" th:if="${!#strings.endsWith(acao, '/editar')}">
+                        <legend>Perfil de acesso <span aria-hidden="true">*</span></legend>
+                        <div class="admin-crud-perfil-opcoes">
+                            <label class="admin-crud-perfil-opcao" for="perfilAtendente">
+                                <input type="radio" id="perfilAtendente" th:field="*{perfil}" value="ATENDENTE" required
+                                       th:attr="aria-invalid=${#fields.hasErrors('perfil')}">
+                                <span class="admin-crud-perfil-conteudo">
+                                    <strong>Atendente</strong>
+                                    <small>Gerencia cadastros e chamados da prefeitura.</small>
+                                </span>
+                            </label>
+                            <label class="admin-crud-perfil-opcao" for="perfilFuncionario">
+                                <input type="radio" id="perfilFuncionario" th:field="*{perfil}" value="FUNCIONARIO" required
+                                       th:attr="aria-invalid=${#fields.hasErrors('perfil')}">
+                                <span class="admin-crud-perfil-conteudo">
+                                    <strong>Funcionário de campo</strong>
+                                    <small>Executa os serviços pelo aplicativo.</small>
+                                </span>
+                            </label>
+                        </div>
+                        <p class="admin-crud-field-help">Selecione um perfil para definir as permissões do usuário.</p>
                         <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('perfil')}" th:errors="*{perfil}">Perfil inválido.</p>
-                    </div>
+                    </fieldset>
                     <div class="admin-crud-readonly" th:if="${#strings.endsWith(acao, '/editar')}">
                         <span class="admin-crud-readonly-label">Perfil de acesso</span>
                         <strong th:text="${usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'ATENDENTE' ? 'Atendente' : 'Funcionário de campo'}">Funcionário de campo</strong>
                         <p>O perfil não pode ser alterado nesta tela.</p>
                     </div>
-                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}">
+                    <div class="admin-crud-field admin-crud-campo-setor" id="campoSetor"
+                         th:if="${!#strings.endsWith(acao, '/editar') or (usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO')}"
+                         th:attr="hidden=${!#strings.endsWith(acao, '/editar') and (usuarioDTO.perfil == null or usuarioDTO.perfil.name() != 'FUNCIONARIO')} ? 'hidden' : null">
                         <label for="setorId">Setor <span class="admin-crud-label-note">obrigatório para funcionário</span></label>
-                        <select id="setorId" th:field="*{setorId}" th:attr="aria-invalid=${#fields.hasErrors('setorId')}" class="cr-slim-select" data-slim-search="search">
+                        <select id="setorId" th:field="*{setorId}"
+                                th:attr="aria-invalid=${#fields.hasErrors('setorId')},required=${usuarioDTO.perfil != null and usuarioDTO.perfil.name() == 'FUNCIONARIO'} ? 'required' : null"
+                                class="cr-slim-select" data-slim-search="search">
                             <option value="">Selecione um setor</option>
                             <option th:each="setor : ${setores}" th:value="${setor.id}" th:text="${setor.nome}">Obras</option>
                         </select>
@@ -71,6 +88,17 @@
                                placeholder="Crie uma senha forte" th:attr="aria-invalid=${#fields.hasErrors('senha')}">
                         <p id="dica-senha" class="admin-crud-field-help">De 8 a 64 caracteres, com letra maiúscula, minúscula, número e símbolo, sem espaços.</p>
                         <p class="admin-crud-field-error" role="alert" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}">Senha inválida.</p>
+                    </div>
+                    <div class="admin-crud-field" th:if="${!#strings.endsWith(acao, '/editar')}">
+                        <label for="confirmarSenha">Confirmar senha <span aria-hidden="true">*</span></label>
+                        <!-- Não usar th:field para não repopular a senha após erro de cadastro. -->
+                        <input type="password" id="confirmarSenha" name="confirmarSenha"
+                               minlength="8" maxlength="64" autocomplete="new-password" required
+                               placeholder="Repita a senha inicial"
+                               th:attr="aria-invalid=${#fields.hasErrors('confirmarSenha')}">
+                        <p class="admin-crud-field-error" data-erro-confirmacao hidden aria-live="polite">As senhas não coincidem.</p>
+                        <p class="admin-crud-field-error" role="alert" data-confirmacao-servidor
+                           th:if="${#fields.hasErrors('confirmarSenha')}" th:errors="*{confirmarSenha}">As senhas não coincidem.</p>
                     </div>
                     <div class="admin-crud-form-actions">
                         <button class="admin-crud-button admin-crud-button-primary" type="submit">Salvar usuário</button>
@@ -90,5 +118,7 @@
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Área administrativa</footer>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
     <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
+    <script defer th:src="@{/js/usuario-formulario.js}" src="/js/usuario-formulario.js"></script>
+    <script defer th:src="@{/js/confirmar-senha-cadastro.js}" src="/js/confirmar-senha-cadastro.js"></script>
 </body>
 </html>

@@ -91,6 +91,8 @@ public class ChamadoController {
             Chamado chamado = chamadoService.cadastrar(dados, autenticacao.getName());
 
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Chamado registrado com sucesso.");
+            // Ao abrir os detalhes pela primeira vez, destaca o envio opcional de fotos.
+            redirectAttributes.addFlashAttribute("destaqueFotos", true);
             return "redirect:/chamados/" + chamado.getId();
         } catch (IllegalArgumentException | EntityNotFoundException e) {
             resultado.reject("chamado.invalido", e.getMessage());

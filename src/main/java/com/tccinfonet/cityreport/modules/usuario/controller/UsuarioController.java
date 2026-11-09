@@ -51,6 +51,7 @@ public class UsuarioController {
                             BindingResult resultado,
                             Model model,
                             RedirectAttributes redirectAttributes) {
+        validarConfirmacaoSenha(usuarioDTO, resultado);
         if (resultado.hasErrors()) {
             return prepararPagina(model, "Cadastrar usuario", "/atendente/usuarios");
         }
@@ -184,6 +185,16 @@ public class UsuarioController {
         // Mantem a sessao web ativa, como na alteracao de senha do cidadao.
         redirectAttributes.addFlashAttribute("mensagemSucesso", "Senha alterada com sucesso.");
         return "redirect:/atendente/minha-senha";
+    }
+
+    // A confirmação é exigida apenas no cadastro, nunca na edição de perfil ou usuário.
+    private void validarConfirmacaoSenha(UsuarioRequestDTO dados, BindingResult resultado) {
+        String confirmacao = dados.getConfirmarSenha();
+        if (confirmacao == null || confirmacao.isEmpty()) {
+            resultado.rejectValue("confirmarSenha", "senha.confirmacaoObrigatoria", "Confirme a senha.");
+        } else if (!confirmacao.equals(dados.getSenha())) {
+            resultado.rejectValue("confirmarSenha", "senha.confirmacaoDiferente", "As senhas não coincidem.");
+        }
     }
 
     private Usuario converterParaUsuario(UsuarioRequestDTO usuarioDTO) {

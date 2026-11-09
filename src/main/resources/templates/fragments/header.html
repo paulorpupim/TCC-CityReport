@@ -67,7 +67,7 @@
                    th:attr="aria-current=${abaAtiva == 'inicio' ? 'page' : null}">Início</a>
                 <details class="home-nav-menu">
                     <summary class="home-nav-link home-nav-toggle"
-                             th:classappend="${abaAtiva == 'chamados' or abaAtiva == 'mapa-chamados'} ? 'is-current' : ''">
+                             th:classappend="${abaAtiva == 'chamados' or abaAtiva == 'mapa-chamados' or abaAtiva == 'relatorios'} ? 'is-current' : ''">
                         Chamados
                         <svg class="home-nav-chevron" viewBox="0 0 24 24" width="15" height="15"
                              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -82,6 +82,9 @@
                         <a class="home-nav-option" th:href="@{/atendente/chamados/mapa}" href="/atendente/chamados/mapa"
                            th:classappend="${abaAtiva == 'mapa-chamados'} ? 'is-current' : ''"
                            th:attr="aria-current=${abaAtiva == 'mapa-chamados' ? 'page' : null}">Mapa de chamados</a>
+                        <a class="home-nav-option" th:href="@{/atendente/relatorios}" href="/atendente/relatorios"
+                           th:classappend="${abaAtiva == 'relatorios'} ? 'is-current' : ''"
+                           th:attr="aria-current=${abaAtiva == 'relatorios' ? 'page' : null}">Relatórios de chamados</a>
                     </div>
                 </details>
                 <a class="home-nav-link" th:href="@{/atendente/usuarios}" href="/atendente/usuarios"

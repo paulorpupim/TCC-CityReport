@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F172A">
+    <title>Relatórios de chamados | CityReport</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
+    <link rel="stylesheet" th:href="@{/css/relatorios.css}" href="/css/relatorios.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
+    <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
+</head>
+<body class="home-page rel-page">
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <header th:replace="~{fragments/header :: atendente('relatorios')}"></header>
+
+    <main class="home-container rel-main" id="conteudo">
+        <nav class="rel-breadcrumb" aria-label="Você está aqui">
+            <a th:href="@{/}" href="/">Início</a>
+            <span aria-hidden="true">/</span>
+            <span>Relatórios de chamados</span>
+        </nav>
+
+        <div class="rel-intro">
+            <div>
+                <p class="rel-eyebrow">CITYREPORT · GESTÃO E TRANSPARÊNCIA</p>
+                <h1>Relatórios de chamados</h1>
+                <p>Consulte os registros por data de abertura, acompanhe sua situação atual e exporte os dados para análise.</p>
+            </div>
+            <a class="rel-back-link" th:href="@{/atendente/chamados}" href="/atendente/chamados">Gerenciar chamados <span aria-hidden="true">→</span></a>
+        </div>
+
+        <section class="rel-panel" aria-labelledby="rel-filtros-titulo">
+            <div class="rel-section-heading">
+                <div>
+                    <span class="rel-kicker">CONSULTA</span>
+                    <h2 id="rel-filtros-titulo">Filtrar registros</h2>
+                </div>
+                <a class="rel-clear-link" th:href="@{/atendente/relatorios}" href="/atendente/relatorios">Limpar filtros</a>
+            </div>
+
+            <div class="rel-error" role="alert" th:if="${mensagemErro}" th:text="${mensagemErro}">Verifique as datas informadas.</div>
+
+            <form id="rel-form" method="get" th:action="@{/atendente/relatorios}" action="/atendente/relatorios">
+                <div class="rel-filters">
+                    <div class="rel-field">
+                        <label for="rel-data-inicial">Data inicial <span aria-hidden="true">*</span></label>
+                        <input id="rel-data-inicial" type="date" name="dataInicial" required
+                               th:value="${filtro.dataInicial}" value="2026-11-01">
+                    </div>
+                    <div class="rel-field">
+                        <label for="rel-data-final">Data final <span aria-hidden="true">*</span></label>
+                        <input id="rel-data-final" type="date" name="dataFinal" required
+                               th:value="${filtro.dataFinal}" value="2026-11-08">
+                    </div>
+                    <div class="rel-field">
+                        <label for="rel-setor">Setor</label>
+                        <select id="rel-setor" name="setorId" class="cr-slim-select" data-slim-search="search">
+                            <option value="">Todos os setores</option>
+                            <option th:each="setor : ${setores}" th:value="${setor.id}"
+                                    th:text="${setor.nome}" th:selected="${filtro.setorId == setor.id}">Obras</option>
+                        </select>
+                    </div>
+                    <div class="rel-field">
+                        <label for="rel-categoria">Categoria</label>
+                        <select id="rel-categoria" name="categoriaId" class="cr-slim-select" data-slim-search="search">
+                            <option value="">Todas as categorias</option>
+                            <option th:each="categoria : ${categorias}" th:value="${categoria.id}"
+                                    th:text="|${categoria.nome} · ${categoria.setor.nome}|"
+                                    th:attr="data-setor-id=${categoria.setor.id}"
+                                    th:selected="${filtro.categoriaId == categoria.id}">Buraco · Obras</option>
+                        </select>
+                    </div>
+                    <div class="rel-field">
+                        <label for="rel-prioridade">Prioridade oficial</label>
+                        <select id="rel-prioridade" name="prioridade" class="cr-slim-select" data-slim-search="simple">
+                            <option value="">Todas as prioridades</option>
+                            <option value="CRITICA" th:selected="${filtro.prioridade == 'CRITICA'}">Crítica</option>
+                            <option value="ALTA" th:selected="${filtro.prioridade == 'ALTA'}">Alta</option>
+                            <option value="MEDIA" th:selected="${filtro.prioridade == 'MEDIA'}">Média</option>
+                            <option value="BAIXA" th:selected="${filtro.prioridade == 'BAIXA'}">Baixa</option>
+                            <option value="SEM_PRIORIDADE" th:selected="${filtro.prioridade == 'SEM_PRIORIDADE'}">Ainda não definida</option>
+                        </select>
+                    </div>
+                    <div class="rel-field">
+                        <label for="rel-status">Status atual</label>
+                        <select id="rel-status" name="status" class="cr-slim-select" data-slim-search="simple">
+                            <option value="">Todos os status</option>
+                            <option value="ENVIADO" th:selected="${filtro.status?.name() == 'ENVIADO'}">Enviado</option>
+                            <option value="AGUARDANDO_INFORMACOES" th:selected="${filtro.status?.name() == 'AGUARDANDO_INFORMACOES'}">Aguardando informações</option>
+                            <option value="ABERTO" th:selected="${filtro.status?.name() == 'ABERTO'}">Aberto</option>
+                            <option value="ATRIBUIDO" th:selected="${filtro.status?.name() == 'ATRIBUIDO'}">Atribuído</option>
+                            <option value="EM_EXECUCAO" th:selected="${filtro.status?.name() == 'EM_EXECUCAO'}">Em execução</option>
+                            <option value="PENDENTE" th:selected="${filtro.status?.name() == 'PENDENTE'}">Pendente</option>
+                            <option value="AGUARDANDO_VALIDACAO" th:selected="${filtro.status?.name() == 'AGUARDANDO_VALIDACAO'}">Aguardando validação</option>
+                            <option value="RESOLVIDO" th:selected="${filtro.status?.name() == 'RESOLVIDO'}">Resolvido</option>
+                            <option value="RECUSADO" th:selected="${filtro.status?.name() == 'RECUSADO'}">Recusado</option>
+                            <option value="CANCELADO" th:selected="${filtro.status?.name() == 'CANCELADO'}">Cancelado</option>
+                            <option value="DUPLICADO" th:selected="${filtro.status?.name() == 'DUPLICADO'}">Duplicado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rel-actions">
+                    <button type="submit" class="rel-action-primary">Consultar relatório</button>
+                    <p>O período considera a <strong>data de abertura</strong> dos chamados (inclusive os já encerrados).</p>
+                </div>
+            </form>
+        </section>
+
+        <section class="rel-summary" aria-label="Resumo dos resultados">
+            <div class="rel-summary-card">
+                <span>Chamados encontrados</span>
+                <strong th:text="${resultado.total}">0</strong>
+                <small>Abertos no período selecionado</small>
+            </div>
+            <div class="rel-summary-card rel-summary-done">
+                <span>Atualmente resolvidos</span>
+                <strong th:text="${resultado.resolvidos}">0</strong>
+                <small>Situação atual: resolvido</small>
+            </div>
+            <div class="rel-summary-card">
+                <span>Em andamento</span>
+                <strong th:text="${resultado.emAndamento}">0</strong>
+                <small>Ainda não encerrados</small>
+            </div>
+            <div class="rel-summary-card">
+                <span>Outros encerramentos</span>
+                <strong th:text="${resultado.encerradosSemResolucao}">0</strong>
+                <small>Cancelados, recusados ou duplicados</small>
+            </div>
+        </section>
+
+        <section class="rel-panel rel-analytics" aria-labelledby="rel-analise-titulo">
+            <div class="rel-section-heading">
+                <div>
+                    <span class="rel-kicker">DESEMPENHO</span>
+                    <h2 id="rel-analise-titulo">Análise dos atendimentos</h2>
+                    <p class="rel-analytics-help">Estatísticas dos chamados <strong>abertos nas datas filtradas</strong>,
+                        considerando a situação atual de cada registro.</p>
+                </div>
+            </div>
+            <div class="rel-performance">
+                <div class="rel-performance-highlight">
+                    <span>Tempo médio até a resolução</span>
+                    <strong th:text="${analise.tempoMedioFormatado()}">2 d 3 h</strong>
+                    <small>Da abertura até a aprovação do atendente</small>
+                </div>
+                <div class="rel-performance-highlight">
+                    <span>Resoluções consideradas</span>
+                    <strong th:text="${analise.resolvidosComDatasValidas}">0</strong>
+                    <small>Chamados resolvidos com datas válidas nesta seleção</small>
+                </div>
+            </div>
+            <div class="rel-rankings">
+                <div class="rel-ranking">
+                    <h3>Setores com mais chamados</h3>
+                    <p>Até cinco setores, ordenados pela quantidade de registros.</p>
+                    <ol th:if="${!analise.setores.empty}">
+                        <li th:each="item : ${analise.setores}">
+                            <span th:text="${item.nome}">Obras e Infraestrutura</span>
+                            <strong th:text="${item.quantidade}">0</strong>
+                        </li>
+                    </ol>
+                    <p class="rel-ranking-empty" th:if="${analise.setores.empty}">Sem dados neste intervalo.</p>
+                </div>
+                <div class="rel-ranking">
+                    <h3>Categorias com mais chamados</h3>
+                    <p>Categorias identificadas pelo setor de origem.</p>
+                    <ol th:if="${!analise.categorias.empty}">
+                        <li th:each="item : ${analise.categorias}">
+                            <span th:text="${item.nome}">Buraco · Obras</span>
+                            <strong th:text="${item.quantidade}">0</strong>
+                        </li>
+                    </ol>
+                    <p class="rel-ranking-empty" th:if="${analise.categorias.empty}">Sem dados neste intervalo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="rel-panel rel-table-panel" aria-labelledby="rel-tabela-titulo">
+            <div class="rel-section-heading rel-table-heading">
+                <div>
+                    <span class="rel-kicker">RESULTADOS</span>
+                    <h2 id="rel-tabela-titulo">Chamados do período</h2>
+                    <p>Os totais mostram o <strong>status atual</strong> dos chamados abertos nas datas escolhidas; não são contagens de resoluções ocorridas nesse período.</p>
+                </div>
+                <div class="rel-export-actions">
+                    <a class="rel-export" th:href="@{/atendente/relatorios/pdf(dataInicial=${filtro.dataInicial},dataFinal=${filtro.dataFinal},setorId=${filtro.setorId},categoriaId=${filtro.categoriaId},prioridade=${filtro.prioridade},status=${filtro.status})}">
+                        <span aria-hidden="true">↓</span> Exportar PDF
+                    </a>
+                    <a class="rel-export" th:href="@{/atendente/relatorios/csv(dataInicial=${filtro.dataInicial},dataFinal=${filtro.dataFinal},setorId=${filtro.setorId},categoriaId=${filtro.categoriaId},prioridade=${filtro.prioridade},status=${filtro.status})}">
+                        <span aria-hidden="true">↓</span> Exportar CSV
+                    </a>
+                </div>
+            </div>
+            <div class="rel-table-wrap" th:if="${!paginaResultado.empty}">
+                <table class="rel-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Protocolo / chamado</th>
+                            <th scope="col">Setor e categoria</th>
+                            <th scope="col">Prioridade</th>
+                            <th scope="col">Status atual</th>
+                            <th scope="col">Aberto em</th>
+                            <th scope="col">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="linha : ${paginaResultado.content}">
+                            <td>
+                                <span class="rel-protocolo" th:text="${linha.protocolo}">2026-000001</span>
+                                <strong class="rel-titulo" th:text="${linha.titulo}">Buraco na via</strong>
+                            </td>
+                            <td><span th:text="${linha.setor}">Obras</span><small th:text="${linha.categoria}">Buraco</small></td>
+                            <td th:text="${linha.prioridadeOficial}">Alta</td>
+                            <td><span class="rel-status"
+                                      th:classappend="${linha.status == 'Resolvido' ? 'rel-status-done' : (linha.status == 'Cancelado' or linha.status == 'Recusado' ? 'rel-status-closed' : '')}"
+                                      th:text="${linha.status}">Aberto</span></td>
+                            <td th:text="${#temporals.format(linha.dataCriacao, 'dd/MM/yyyy HH:mm')}">08/11/2026</td>
+                            <td><a class="rel-view" th:href="@{/atendente/chamados/{id}(id=${linha.id})}">Detalhes</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="rel-empty" th:if="${paginaResultado.empty}">
+                <strong>Nenhum chamado encontrado.</strong>
+                <p>Tente ampliar o período ou remover um dos filtros.</p>
+            </div>
+            <div class="rel-pagination" th:if="${paginaResultado.totalPages > 1}">
+                <a th:if="${paginaResultado.hasPrevious()}"
+                   th:href="@{/atendente/relatorios(dataInicial=${filtro.dataInicial},dataFinal=${filtro.dataFinal},setorId=${filtro.setorId},categoriaId=${filtro.categoriaId},prioridade=${filtro.prioridade},status=${filtro.status},pagina=${paginaResultado.number - 1})}">← Anterior</a>
+                <span th:text="|Página ${paginaResultado.number + 1} de ${paginaResultado.totalPages}|">Página 1 de 3</span>
+                <a th:if="${paginaResultado.hasNext()}"
+                   th:href="@{/atendente/relatorios(dataInicial=${filtro.dataInicial},dataFinal=${filtro.dataFinal},setorId=${filtro.setorId},categoriaId=${filtro.categoriaId},prioridade=${filtro.prioridade},status=${filtro.status},pagina=${paginaResultado.number + 1})}">Próxima →</a>
+            </div>
+        </section>
+    </main>
+    <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Relatórios administrativos</footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js" defer></script>
+    <script th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js" defer></script>
+    <script th:src="@{/js/relatorios.js}" src="/js/relatorios.js" defer></script>
+</body>
+</html>

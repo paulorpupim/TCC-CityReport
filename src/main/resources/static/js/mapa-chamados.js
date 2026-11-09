@@ -1,4 +1,4 @@
-/* Mapa administrativo do CityReport: filtros locais, sem chamadas adicionais a API. */
+/* Mapa administrativo: intervalo consultado no banco e filtros de exibicao locais. */
 (() => {
     'use strict';
 
@@ -15,6 +15,55 @@
         setor: document.getElementById('filtro-setor'),
         categoria: document.getElementById('filtro-categoria')
     };
+
+    // Um único select recebe períodos ou anos; os dois modos nunca são combinados.
+    const formularioData = document.getElementById('mapa-form-data');
+    const valorData = document.getElementById('filtro-valor-data');
+    const rotuloData = document.getElementById('mapa-data-rotulo');
+    const ajudaData = document.getElementById('mapa-data-ajuda');
+    if (formularioData && valorData) {
+        const radios = Array.from(formularioData.querySelectorAll('input[name="modo"]'));
+        const anos = Array.from(document.querySelectorAll('#mapa-anos-disponiveis [data-ano]'))
+            .map(elemento => elemento.dataset.ano);
+        const anoAtual = anos[0]; // Lista ordenada do ano atual para os mais antigos.
+        const periodos = [
+            ['7', 'Últimos 7 dias'],
+            ['30', 'Últimos 30 dias'],
+            ['90', 'Últimos 90 dias'],
+            ['180', 'Últimos 180 dias'],
+            ['ano-atual', 'Todo o ano atual']
+        ];
+        let modoAnterior = radios.find(radio => radio.checked)?.value || 'periodo';
+        let ultimoPeriodo = modoAnterior === 'periodo' ? valorData.value : '90';
+        let ultimoAno = modoAnterior === 'ano' ? valorData.value : anoAtual;
+
+        radios.forEach(radio => radio.addEventListener('change', () => {
+            if (!radio.checked || radio.value === modoAnterior) return;
+            if (modoAnterior === 'ano') ultimoAno = valorData.value;
+            else ultimoPeriodo = valorData.value;
+
+            modoAnterior = radio.value;
+            const porAno = modoAnterior === 'ano';
+            const opcoes = porAno ? anos.map(ano => [ano, ano]) : periodos;
+            valorData.replaceChildren(...opcoes.map(([valor, texto]) => {
+                const option = document.createElement('option');
+                option.value = valor;
+                option.textContent = texto;
+                return option;
+            }));
+            const escolha = porAno ? ultimoAno : ultimoPeriodo;
+            valorData.value = opcoes.some(([valor]) => valor === escolha)
+                ? escolha : opcoes[0][0];
+            window.CityReportSelects?.atualizarOpcoes(valorData);
+            rotuloData.textContent = porAno ? 'Ano de abertura' : 'Período do ano atual';
+            ajudaData.textContent = porAno
+                ? 'Exibe o ano inteiro, inclusive chamados resolvidos ou encerrados.'
+                : 'Os períodos são limitados a 1º de janeiro do ano atual. Para consultar anos anteriores, selecione “Por ano”.';
+        }));
+        if (modoAnterior === 'ano') {
+            ajudaData.textContent = 'Exibe o ano inteiro, inclusive chamados resolvidos ou encerrados.';
+        }
+    }
 
     const nomesStatus = {
         ENVIADO: 'Enviado', AGUARDANDO_INFORMACOES: 'Aguardando informações',
@@ -194,7 +243,7 @@
         });
         grupos.forEach(criarMarcador);
         const total = pontos.length;
-        elContagem.textContent = `Exibindo ${filtrados.length} de ${total} chamados com localização (${grupos.size} pontos no mapa).`;
+        elContagem.textContent = `Exibindo ${filtrados.length} de ${total} chamados com localização no período (${grupos.size} pontos no mapa).`;
         botaoEnquadrar.disabled = grupos.size === 0;
         elAviso.hidden = grupos.size !== 0;
         elAviso.textContent = total === 0
@@ -209,17 +258,8 @@
             aplicarFiltros();
         });
     });
-    document.getElementById('limpar-filtros').addEventListener('click', () => {
-        filtros.busca.value = '';
-        // Mudar o .value do select nativo sozinho não atualiza a interface Slim.
-        for (const campo of [filtros.status, filtros.prioridade, filtros.setor]) {
-            window.CityReportSelects?.definirValor(campo, '');
-        }
-        atualizarCategorias();
-        window.CityReportSelects?.definirValor(filtros.categoria, '');
-        aplicarFiltros();
-        filtros.busca.focus();
-    });
+    // "Limpar filtros" é um link para a rota sem parâmetros: restaura também
+    // o modo padrão (últimos 90 dias), sem deixar o Slim Select dessincronizado.
     botaoEnquadrar.addEventListener('click', enquadrarMarcadores);
     aplicarFiltros();
 })();

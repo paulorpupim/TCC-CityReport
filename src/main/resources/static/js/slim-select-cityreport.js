@@ -8,7 +8,7 @@
         if (instancias.has(select) || typeof SlimSelect !== 'function') return;
         // Algumas ações administrativas existem em <details> fechados.
         // Inicializar somente quando visíveis evita medidas incorretas de largura.
-        if (select.closest('details:not([open])')) return;
+        if (select.closest('details:not([open]), [hidden]')) return;
 
         const pesquisavel = select.dataset.slimSearch === 'search';
         const rotulo = document.querySelector(`label[for="${select.id}"]`);
@@ -73,8 +73,19 @@
         if (instancia) instancia.setSelected(valor);
     }
 
-    // API pequena utilizada pelos filtros dinâmicos do mapa de chamados.
-    window.CityReportSelects = { atualizarOpcoes, definirValor };
+    // Também permite inicializar selects que só aparecem após uma ação do usuário.
+    function definirHabilitado(select, habilitado) {
+        const instancia = instancias.get(select);
+        if (instancia) {
+            if (habilitado) instancia.enable();
+            else instancia.disable();
+        } else {
+            select.disabled = !habilitado;
+        }
+    }
+
+    // API utilizada pelos filtros do mapa e pelo formulário de usuários.
+    window.CityReportSelects = { atualizarOpcoes, definirValor, iniciar, definirHabilitado };
 
     document.addEventListener('DOMContentLoaded', () => {
         const selects = Array.from(document.querySelectorAll('select.cr-slim-select'));

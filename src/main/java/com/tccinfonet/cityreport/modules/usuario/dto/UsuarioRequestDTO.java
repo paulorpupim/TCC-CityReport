@@ -25,6 +25,9 @@ public class UsuarioRequestDTO {
 
     private String senha;
 
+    // Usado apenas nos formulários de criação de conta; não é armazenado no banco.
+    private String confirmarSenha;
+
     private PerfilUsuario perfil;
 
     // Obrigatorio somente quando o perfil for FUNCIONARIO.

@@ -182,3 +182,50 @@
 @media (prefers-reduced-motion: reduce) {
     .citizen-detail-page .citizen-detail-tabs a { transition: none; }
 }
+
+
+/* Upload de fotos: visivel e orientado no primeiro acesso ao chamado. */
+.citizen-detail-page .citizen-detail-photos { scroll-margin-top: 1rem; }
+.citizen-detail-page .citizen-detail-photos--destaque {
+    border: 2px solid #2b9df4;
+    box-shadow: 0 0 0 5px rgba(43, 157, 244, .11), 0 8px 22px rgba(15, 23, 42, .07);
+    animation: citizen-photo-highlight 1.2s ease-in-out 2;
+}
+.citizen-detail-page .citizen-detail-photo-tip {
+    padding: 1rem 1.1rem; margin: 0 0 1rem;
+    background: #ecf7ff; border: 1px solid #b5dbf6; border-left: 4px solid #2b9df4;
+    border-radius: .8rem; color: #174a71;
+}
+.citizen-detail-page .citizen-detail-photo-tip strong { display: block; font-size: .93rem; }
+.citizen-detail-page .citizen-detail-photo-tip p {
+    margin: .38rem 0 0; font-size: .84rem; line-height: 1.55;
+}
+.citizen-detail-page .citizen-detail-photo-preview {
+    margin: .85rem 0 0; padding: .7rem; display: grid;
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr); gap: .85rem;
+    align-items: center; background: #f5faff; border: 1px solid #cbdfee; border-radius: .78rem;
+}
+.citizen-detail-page .citizen-detail-photo-preview[hidden],
+.citizen-detail-page .citizen-detail-photo-error[hidden] { display: none; }
+.citizen-detail-page .citizen-detail-photo-preview img {
+    display: block; width: 100%; height: 126px; border-radius: .55rem;
+    object-fit: contain; background: #e7edf4;
+}
+.citizen-detail-page .citizen-detail-photo-preview figcaption { display: grid; gap: .3rem; min-width: 0; }
+.citizen-detail-page .citizen-detail-photo-preview strong { font-size: .83rem; color: #1a4166; }
+.citizen-detail-page .citizen-detail-photo-preview span { font-size: .78rem; color: #43566b; overflow-wrap: anywhere; }
+.citizen-detail-page .citizen-detail-photo-preview small { font-size: .72rem; color: #5c7189; line-height: 1.5; }
+.citizen-detail-page .citizen-detail-photo-error {
+    margin: .65rem 0 0; color: #aa1c27; font-size: .8rem; font-weight: 700;
+}
+@keyframes citizen-photo-highlight {
+    0%, 100% { box-shadow: 0 0 0 5px rgba(43, 157, 244, .11), 0 8px 22px rgba(15, 23, 42, .07); }
+    50% { box-shadow: 0 0 0 9px rgba(43, 157, 244, .2), 0 8px 22px rgba(15, 23, 42, .07); }
+}
+@media (max-width: 550px) {
+    .citizen-detail-page .citizen-detail-photo-preview { grid-template-columns: 1fr; }
+    .citizen-detail-page .citizen-detail-photo-preview img { height: 200px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .citizen-detail-page .citizen-detail-photos--destaque { animation: none; }
+}

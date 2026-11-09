@@ -40,6 +40,7 @@ public class CidadaoController {
             @Valid @ModelAttribute("usuarioDTO") UsuarioRequestDTO usuarioDTO,
             BindingResult resultado) {
 
+        validarConfirmacaoSenha(usuarioDTO, resultado);
         if (resultado.hasErrors()) {
             return "cidadao/cadastro";
         }
@@ -127,6 +128,16 @@ public class CidadaoController {
         }
 
         return "redirect:/cidadaos/perfil";
+    }
+
+    // A confirmação é exigida apenas no cadastro, nunca na edição de perfil ou usuário.
+    private void validarConfirmacaoSenha(UsuarioRequestDTO dados, BindingResult resultado) {
+        String confirmacao = dados.getConfirmarSenha();
+        if (confirmacao == null || confirmacao.isEmpty()) {
+            resultado.rejectValue("confirmarSenha", "senha.confirmacaoObrigatoria", "Confirme a senha.");
+        } else if (!confirmacao.equals(dados.getSenha())) {
+            resultado.rejectValue("confirmarSenha", "senha.confirmacaoDiferente", "As senhas não coincidem.");
+        }
     }
 
     private Usuario converterParaUsuario(UsuarioRequestDTO usuarioDTO) {

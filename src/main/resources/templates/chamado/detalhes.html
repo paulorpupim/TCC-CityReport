@@ -74,7 +74,7 @@
         <div class="citizen-detail-section" th:if="${secao == 'informacoes'}">
             <div class="citizen-detail-section-intro">
                 <h2>Informações do chamado</h2>
-                <p>Dados da ocorrência, localização e fotografias do problema.</p>
+                <p>Dados da ocorrência, fotografias do problema e localização.</p>
             </div>
             <section class="citizen-detail-card" aria-labelledby="titulo-dados">
                 <div class="citizen-detail-section-heading"><div>
@@ -97,27 +97,6 @@
                     <div class="citizen-detail-fact"><dt>Concluído em</dt>
                         <dd th:text="${chamado.dataConclusao != null ? #temporals.format(chamado.dataConclusao, 'dd/MM/yyyy HH:mm') : 'Ainda não concluído'}">Ainda não concluído</dd></div>
                 </dl>
-            </section>
-
-            <section class="citizen-detail-card" aria-labelledby="titulo-localizacao">
-                <div class="citizen-detail-section-heading"><div>
-                    <p class="citizen-detail-eyebrow">LOCALIZAÇÃO</p>
-                    <h2 id="titulo-localizacao">Onde fica o problema?</h2>
-                </div></div>
-                <div class="citizen-detail-address"><span class="citizen-detail-label">Endereço ou referência</span>
-                    <p th:text="${chamado.endereco != null and !#strings.isEmpty(chamado.endereco) ? chamado.endereco : 'Não informado'}">Rua das Flores, centro.</p>
-                </div>
-                <div th:if="${chamado.latitude != null and chamado.longitude != null}"
-                     id="mapa-localizacao" class="citizen-detail-map"
-                     th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
-                     role="region" aria-label="Mapa com o ponto informado no chamado"></div>
-                <p class="citizen-detail-empty" th:if="${chamado.latitude == null or chamado.longitude == null}">
-                    Nenhum ponto foi marcado no mapa. Consulte o endereço informado acima.
-                </p>
-                <p class="citizen-detail-coordinates" th:if="${chamado.latitude != null and chamado.longitude != null}">
-                    Coordenadas: <span th:text="${chamado.latitude}">-20.286</span>,
-                    <span th:text="${chamado.longitude}">-50.396</span>
-                </p>
             </section>
 
             <section class="citizen-detail-card citizen-detail-duplicate" th:if="${chamado.status.name() == 'DUPLICADO'}"
@@ -152,13 +131,21 @@
                 </div>
             </section>
 
-            <section class="citizen-detail-card" aria-labelledby="titulo-fotos-problema">
+            <section id="fotos-problema" class="citizen-detail-card citizen-detail-photos"
+                     th:classappend="${destaqueFotos == true} ? ' citizen-detail-photos--destaque' : ''"
+                     aria-labelledby="titulo-fotos-problema">
                 <div class="citizen-detail-section-heading"><div>
                     <p class="citizen-detail-eyebrow">FOTOGRAFIAS INICIAIS</p>
                     <h2 id="titulo-fotos-problema">Fotos do problema</h2>
                     <p>Imagens enviadas pelo cidadão para mostrar a ocorrência.</p>
                 </div><span class="citizen-detail-count" th:text="${#lists.size(fotos)} + ' foto(s)'">2 fotos</span></div>
-                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia do problema registrada.</p>
+                <div class="citizen-detail-photo-tip" role="status"
+                     th:if="${destaqueFotos == true and (chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES')}">
+                    <strong>Chamado registrado! Que tal adicionar uma foto?</strong>
+                    <p>Uma imagem ajuda a prefeitura a entender a situação e planejar o atendimento.
+                       É opcional: você pode enviar agora ou voltar depois.</p>
+                </div>
+                <p class="citizen-detail-empty" th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia do problema registrada ainda.</p>
                 <ul class="citizen-detail-photo-grid" th:unless="${#lists.isEmpty(fotos)}">
                     <li class="citizen-detail-photo" th:each="foto : ${fotos}">
                         <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
@@ -171,17 +158,51 @@
                         </div>
                     </li>
                 </ul>
-                <details class="citizen-detail-accordion" th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}">
+                <details class="citizen-detail-accordion citizen-detail-photo-upload"
+                         th:if="${chamado.status.name() == 'ENVIADO' or chamado.status.name() == 'AGUARDANDO_INFORMACOES'}"
+                         th:attr="open=${destaqueFotos == true ? 'open' : null}">
                     <summary>Adicionar fotografia do problema</summary>
                     <div class="citizen-detail-accordion-body citizen-detail-action-block">
-                        <p>Opcional. Envie uma fotografia para ajudar na análise.</p>
-                        <form th:action="@{/chamados/{id}/fotos(id=${chamado.id})}" method="post" enctype="multipart/form-data">
+                        <p>Escolha uma imagem do problema para conferir antes de enviar. O envio é opcional.</p>
+                        <form id="form-foto-problema" th:action="@{/chamados/{id}/fotos(id=${chamado.id})}"
+                              method="post" enctype="multipart/form-data">
                             <label for="arquivo">Fotografia (JPG, PNG ou WebP — até 5 MB)</label>
-                            <input type="file" id="arquivo" name="arquivo" accept="image/jpeg,image/png,image/webp" required>
+                            <input type="file" id="arquivo" name="arquivo" accept="image/jpeg,image/png,image/webp"
+                                   aria-describedby="foto-erro" required>
+                            <p id="foto-erro" class="citizen-detail-photo-error" role="alert" hidden></p>
+                            <figure id="foto-previa" class="citizen-detail-photo-preview" hidden>
+                                <img id="foto-previa-imagem" alt="Prévia da fotografia selecionada para envio">
+                                <figcaption>
+                                    <strong>Prévia da fotografia</strong>
+                                    <span id="foto-previa-nome"></span>
+                                    <small>A foto só será adicionada ao chamado após clicar em Enviar fotografia.</small>
+                                </figcaption>
+                            </figure>
                             <button class="citizen-detail-submit" type="submit">Enviar fotografia</button>
                         </form>
                     </div>
                 </details>
+            </section>
+
+            <section class="citizen-detail-card" aria-labelledby="titulo-localizacao">
+                <div class="citizen-detail-section-heading"><div>
+                    <p class="citizen-detail-eyebrow">LOCALIZAÇÃO</p>
+                    <h2 id="titulo-localizacao">Onde fica o problema?</h2>
+                </div></div>
+                <div class="citizen-detail-address"><span class="citizen-detail-label">Endereço ou referência</span>
+                    <p th:text="${chamado.endereco != null and !#strings.isEmpty(chamado.endereco) ? chamado.endereco : 'Não informado'}">Rua das Flores, centro.</p>
+                </div>
+                <div th:if="${chamado.latitude != null and chamado.longitude != null}"
+                     id="mapa-localizacao" class="citizen-detail-map"
+                     th:attr="data-latitude=${chamado.latitude},data-longitude=${chamado.longitude}"
+                     role="region" aria-label="Mapa com o ponto informado no chamado"></div>
+                <p class="citizen-detail-empty" th:if="${chamado.latitude == null or chamado.longitude == null}">
+                    Nenhum ponto foi marcado no mapa. Consulte o endereço informado acima.
+                </p>
+                <p class="citizen-detail-coordinates" th:if="${chamado.latitude != null and chamado.longitude != null}">
+                    Coordenadas: <span th:text="${chamado.latitude}">-20.286</span>,
+                    <span th:text="${chamado.longitude}">-50.396</span>
+                </p>
             </section>
 
             <section class="citizen-detail-card citizen-detail-actions" th:if="${chamado.primeiroInicioExecucao == null and
@@ -323,6 +344,7 @@
     </main>
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Comunicação entre cidadão e prefeitura</footer>
 
+    <script th:if="${secao == 'informacoes'}" th:src="@{/js/fotos-chamado-cidadao.js}" defer></script>
     <script th:if="${secao == 'informacoes'}" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script th:if="${secao == 'informacoes'}">

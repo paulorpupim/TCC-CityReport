@@ -38,15 +38,15 @@
 
         <section class="mapa-resumo" aria-label="Resumo dos chamados por localização">
             <div class="mapa-resumo-item">
-                <span>Total de chamados</span>
+                <span>Chamados no período</span>
                 <strong th:text="${totalChamados}">0</strong>
             </div>
             <div class="mapa-resumo-item">
-                <span>Com localização válida</span>
+                <span>Com localização válida no período</span>
                 <strong th:text="${#lists.size(pontos)}">0</strong>
             </div>
             <div class="mapa-resumo-item">
-                <span>Sem localização no mapa</span>
+                <span>Sem localização no período</span>
                 <strong th:text="${semLocalizacao}">0</strong>
             </div>
         </section>
@@ -54,7 +54,53 @@
         <section class="mapa-filtros" aria-labelledby="mapa-titulo-filtros">
             <div class="mapa-filtros-cabecalho">
                 <h2 id="mapa-titulo-filtros">Filtrar ocorrências</h2>
-                <button type="button" id="limpar-filtros" class="mapa-limpar">Limpar filtros</button>
+                <a id="limpar-filtros" class="mapa-limpar" th:href="@{/atendente/chamados/mapa}" href="/atendente/chamados/mapa">Limpar filtros</a>
+            </div>
+            <div class="mapa-filtro-data">
+                <form id="mapa-form-data" class="mapa-data-form" method="get"
+                      th:action="@{/atendente/chamados/mapa}" action="/atendente/chamados/mapa">
+                    <fieldset class="mapa-data-modos">
+                        <legend>Data de abertura</legend>
+                        <div class="mapa-data-alternativas">
+                            <label class="mapa-data-opcao">
+                                <input type="radio" name="modo" value="periodo"
+                                       th:checked="${modoFiltro == 'periodo'}" checked>
+                                <span>Por período (ano atual)</span>
+                            </label>
+                            <label class="mapa-data-opcao">
+                                <input type="radio" name="modo" value="ano"
+                                       th:checked="${modoFiltro == 'ano'}">
+                                <span>Por ano</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div class="mapa-data-controles">
+                        <div class="mapa-campo mapa-data-valor">
+                            <label id="mapa-data-rotulo" for="filtro-valor-data"
+                                   th:text="${modoFiltro == 'ano'} ? 'Ano de abertura' : 'Período do ano atual'">Período do ano atual</label>
+                            <select id="filtro-valor-data" name="valor" class="cr-slim-select" data-slim-search="simple">
+                                <th:block th:if="${modoFiltro == 'periodo'}">
+                                    <option value="7" th:selected="${valorFiltro == '7'}">Últimos 7 dias</option>
+                                    <option value="30" th:selected="${valorFiltro == '30'}">Últimos 30 dias</option>
+                                    <option value="90" th:selected="${valorFiltro == '90'}">Últimos 90 dias</option>
+                                    <option value="180" th:selected="${valorFiltro == '180'}">Últimos 180 dias</option>
+                                    <option value="ano-atual" th:selected="${valorFiltro == 'ano-atual'}">Todo o ano atual</option>
+                                </th:block>
+                                <th:block th:if="${modoFiltro == 'ano'}">
+                                    <option th:each="ano : ${anosDisponiveis}"
+                                            th:value="${ano}" th:text="${ano}"
+                                            th:selected="${valorFiltro == ano.toString()}">2026</option>
+                                </th:block>
+                            </select>
+                        </div>
+                        <button type="submit" class="mapa-aplicar-data">Aplicar período</button>
+                    </div>
+                </form>
+                <div id="mapa-anos-disponiveis" hidden aria-hidden="true">
+                    <span th:each="ano : ${anosDisponiveis}" th:attr="data-ano=${ano}"></span>
+                </div>
+                <p id="mapa-data-ajuda" class="mapa-data-ajuda">Os períodos são limitados ao ano atual. Para consultar anos anteriores, selecione “Por ano”.</p>
+                <p class="mapa-data-atual"><strong>Consulta atual:</strong> <span th:text="${descricaoPeriodo}">Chamados abertos nos últimos 90 dias do ano atual</span>.</p>
             </div>
             <div class="mapa-filtros-grid">
                 <div class="mapa-campo mapa-busca">
@@ -120,7 +166,7 @@
                 <span><i class="mapa-legenda-cor mapa-cor-resolvida" aria-hidden="true"></i>Resolvido</span>
                 <span><i class="mapa-legenda-cor mapa-cor-encerrada" aria-hidden="true"></i>Outros encerrados</span>
             </div>
-            <p class="mapa-observacao">As cores representam a prioridade oficial dos chamados ativos. Chamados resolvidos e outros encerrados possuem cores próprias. Pontos na mesma localização são agrupados.</p>
+            <p class="mapa-observacao">Os resultados consideram a data de abertura, não a data de resolução. As cores representam a prioridade oficial dos chamados ativos; ocorrências encerradas têm cores próprias. Pontos coincidentes são agrupados.</p>
         </section>
 
         <!-- Dados escapados pelo Thymeleaf. JavaScript usa textContent nos popups:
