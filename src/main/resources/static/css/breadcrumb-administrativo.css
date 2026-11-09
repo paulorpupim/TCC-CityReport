@@ -1,0 +1,35 @@
+/* Breadcrumb compartilhado nas páginas de gestão de chamados.
+   Sobrescreve as regras genéricas de nav/nav a de global.css,
+   mantendo o visual leve usado originalmente no mapa de chamados. */
+.home-page nav.cr-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin: 0 0 1.15rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #66758a;
+    font-size: .79rem;
+}
+
+.home-page nav.cr-breadcrumb a {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #146daa;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.home-page nav.cr-breadcrumb a:hover,
+.home-page nav.cr-breadcrumb a:focus-visible {
+    background: transparent;
+    color: #146daa;
+    text-decoration: underline;
+}

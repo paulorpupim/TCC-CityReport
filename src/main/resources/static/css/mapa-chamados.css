@@ -1,8 +1,5 @@
 /* Mapa administrativo: estilo coerente com o painel e a central de chamados. */
 .mapa-chamados-page .mapa-chamados-main { max-width: 1250px; }
-.mapa-breadcrumb { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin: 0 0 1.15rem; color: #66758a; font-size: .79rem; }
-.mapa-breadcrumb a { color: #146daa; font-weight: 700; text-decoration: none; }
-.mapa-breadcrumb a:hover { text-decoration: underline; }
 .mapa-intro { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 1.8rem 2rem; border-radius: 1.15rem; background: linear-gradient(120deg, #101827, #233a59); color: #fff; }
 .mapa-intro h1 { margin: .4rem 0 .6rem; color: #fff; font-size: clamp(1.7rem, 3vw, 2.4rem); }
 .mapa-intro p:last-child { max-width: 760px; margin: 0; color: #e3ebf7; font-size: .92rem; }

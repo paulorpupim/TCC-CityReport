@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/mapa-chamados.css}" href="/css/mapa-chamados.css">
+    <link rel="stylesheet" th:href="@{/css/breadcrumb-administrativo.css}" href="/css/breadcrumb-administrativo.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <!-- Seletores padronizados: a biblioteca mantém o <select> original como fallback. -->
@@ -19,13 +20,13 @@
     <header th:replace="~{fragments/header :: atendente('mapa-chamados')}"></header>
 
     <main class="home-container mapa-chamados-main" id="conteudo">
-        <div class="mapa-breadcrumb">
+        <nav class="cr-breadcrumb" aria-label="Caminho de navegação">
             <a th:href="@{/}" href="/">Início</a>
             <span aria-hidden="true">/</span>
             <a th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
             <span aria-hidden="true">/</span>
-            <span>Mapa de chamados</span>
-        </div>
+            <span aria-current="page">Mapa de chamados</span>
+        </nav>
 
         <header class="mapa-intro">
             <div>

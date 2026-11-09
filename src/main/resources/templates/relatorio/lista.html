@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/relatorios.css}" href="/css/relatorios.css">
+    <link rel="stylesheet" th:href="@{/css/breadcrumb-administrativo.css}" href="/css/breadcrumb-administrativo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.css">
     <link rel="stylesheet" th:href="@{/css/slim-select-cityreport.css}" href="/css/slim-select-cityreport.css">
 </head>
@@ -16,10 +17,12 @@
     <header th:replace="~{fragments/header :: atendente('relatorios')}"></header>
 
     <main class="home-container rel-main" id="conteudo">
-        <nav class="rel-breadcrumb" aria-label="Você está aqui">
+        <nav class="cr-breadcrumb" aria-label="Caminho de navegação">
             <a th:href="@{/}" href="/">Início</a>
             <span aria-hidden="true">/</span>
-            <span>Relatórios de chamados</span>
+            <a th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Relatórios de chamados</span>
         </nav>
 
         <div class="rel-intro">

@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamados-administracao.css}" href="/css/chamados-administracao.css">
+    <link rel="stylesheet" th:href="@{/css/breadcrumb-administrativo.css}" href="/css/breadcrumb-administrativo.css">
 </head>
 <body class="home-page admin-queue-page">
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -16,9 +17,13 @@
     <header th:replace="~{fragments/header :: atendente('chamados')}"></header>
 
     <main class="home-container admin-queue-main" id="conteudo">
-        <div class="admin-queue-breadcrumb">
-            <a th:href="@{/}" href="/">Início</a><span aria-hidden="true">/</span><span>Gerenciar chamados</span>
-        </div>
+        <nav class="cr-breadcrumb" aria-label="Caminho de navegação">
+            <a th:href="@{/}" href="/">Início</a>
+            <span aria-hidden="true">/</span>
+            <a th:href="@{/atendente/chamados}" href="/atendente/chamados">Chamados</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Gerenciar chamados</span>
+        </nav>
 
         <header class="admin-queue-intro">
             <div>

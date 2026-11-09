@@ -2,9 +2,6 @@
    Complementa global.css e inicio.css. Os filtros são HTML/Thymeleaf nativos. */
 
 .admin-queue-page .admin-queue-main { padding-top: 25px; }
-.admin-queue-page .admin-queue-breadcrumb { display: flex; gap: .65rem; align-items: center; color: #5b6b82; font-size: .78rem; margin-bottom: 22px; }
-.admin-queue-page .admin-queue-breadcrumb a { color: #146daa; font-weight: 700; text-decoration: none; }
-.admin-queue-page .admin-queue-breadcrumb a:hover { text-decoration: underline; }
 .admin-queue-page .admin-queue-intro { min-height: 168px; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 2.15rem 2.35rem; margin-bottom: 24px; border: 1px solid #354963; border-radius: 1.15rem; background: linear-gradient(115deg, #101827, #1c2c42 70%, #294261); color: #fff; box-shadow: 0 15px 38px rgba(15, 23, 42, .09); }
 .admin-queue-page .admin-queue-eyebrow { color: #8bd1ff; font-size: .71rem; letter-spacing: .12em; font-weight: 800; margin-bottom: .55rem; }
 .admin-queue-page .admin-queue-intro h1 { margin: 0 0 .6rem; color: #fff; font-size: clamp(1.7rem, 3vw, 2.4rem); }
@@ -126,7 +123,6 @@
 
 /* ---- Layout compacto: filtros a esquerda, resultados e pesquisa a direita ---- */
 .admin-queue-page .admin-queue-main { width: min(100% - 3rem, 1520px); }
-.admin-queue-page .admin-queue-breadcrumb { margin-bottom: 12px; }
 .admin-queue-page .admin-queue-intro {
     min-height: 0; padding: 1.25rem 1.65rem; margin-bottom: 16px; border-radius: .95rem;
 }

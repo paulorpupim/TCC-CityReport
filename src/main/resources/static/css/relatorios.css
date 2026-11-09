@@ -1,8 +1,5 @@
 /* Central de relatórios — mantém a identidade da área administrativa. */
 .rel-page .rel-main { max-width: 1210px; }
-.rel-breadcrumb { display: flex; align-items: center; gap: .6rem; margin: .25rem 0 1.3rem; color: #687991; font-size: .8rem; }
-.rel-breadcrumb a { color: #146daa; text-decoration: none; font-weight: 700; }
-.rel-breadcrumb a:hover { text-decoration: underline; }
 .rel-intro { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 2rem 2.25rem; border-radius: 1rem; background: linear-gradient(120deg, #111c2b, #293c55); color: #fff; }
 .rel-eyebrow { margin: 0 0 .65rem; font-size: .7rem; letter-spacing: .12em; color: #92d0ff; font-weight: 800; }
 .rel-intro h1 { margin: 0 0 .55rem; color: #fff; font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -.045em; }
