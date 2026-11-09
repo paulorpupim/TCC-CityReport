@@ -40,6 +40,28 @@
                 <span class="citizen-list-counter" th:text="|${#lists.size(chamados)} chamado(s)|">3 chamado(s)</span>
             </div>
 
+            <!-- Pesquisa instantânea: carregada apenas quando há chamados na lista. -->
+            <div class="citizen-list-search" id="pesquisa-chamados-cidadao"
+                 th:unless="${#lists.isEmpty(chamados)}" hidden>
+                <div class="citizen-list-search-field">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <circle cx="10.8" cy="10.8" r="6.6"/>
+                        <path d="m16 16 5 5"/>
+                    </svg>
+                    <input type="search" id="busca-meus-chamados" name="busca"
+                           placeholder="Pesquisar por protocolo ou título..."
+                           aria-label="Pesquisar meus chamados por protocolo ou título"
+                           autocomplete="off">
+                    <button type="button" class="citizen-list-search-clear" id="limpar-busca-chamados"
+                            aria-label="Limpar pesquisa" hidden>Limpar</button>
+                </div>
+                <p class="citizen-list-search-count" id="resultado-busca-chamados" role="status" aria-live="polite"></p>
+            </div>
+            <div class="citizen-list-no-results" id="nenhum-chamado-encontrado" role="status" hidden>
+                <h3>Nenhum chamado encontrado</h3>
+                <p>Tente pesquisar por outro protocolo ou palavra do título.</p>
+            </div>
+
             <div class="citizen-list-empty" th:if="${#lists.isEmpty(chamados)}">
                 <div class="citizen-list-empty-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M8 3h8l4 4v14H4V3h4zM8 3v5h8M8 13h8M8 17h5"/></svg>
@@ -118,5 +140,6 @@
     </main>
 
     <footer class="home-footer">CityReport <span aria-hidden="true">·</span> Comunicação entre cidadão e prefeitura</footer>
+    <script defer th:src="@{/js/pesquisa-chamados-cidadao.js}" src="/js/pesquisa-chamados-cidadao.js"></script>
 </body>
 </html>

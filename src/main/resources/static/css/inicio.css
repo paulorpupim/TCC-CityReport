@@ -171,6 +171,78 @@
 }
 .home-page .home-worker-note svg { width: 19px; height: 19px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; }
 
+/* Pendencias do cidadao: destaque no fluxo da pagina, sem popup nem notificacao extra. */
+.home-page .home-pending {
+    margin-top: 22px;
+    padding: 1.3rem 1.45rem;
+    border: 1px solid #e5c373;
+    border-left: 5px solid #c38318;
+    border-radius: 1rem;
+    background: #fffaf0;
+    box-shadow: 0 5px 18px rgba(114, 76, 20, .055);
+}
+.home-page .home-pending-heading { display: flex; gap: 1rem; align-items: flex-start; }
+.home-page .home-pending-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    display: grid; place-items: center; border-radius: .85rem;
+    color: #935a04; background: #ffebbd;
+}
+.home-page .home-pending-icon svg {
+    width: 23px; height: 23px; fill: none; stroke: currentColor;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.home-page .home-pending-eyebrow {
+    margin: 0 0 .27rem; color: #92600a;
+    font-size: .69rem; font-weight: 800; letter-spacing: .09em;
+}
+.home-page .home-pending h2 {
+    margin: 0 0 .4rem; color: #51370a;
+    font-size: clamp(1.05rem, 1.9vw, 1.27rem);
+    letter-spacing: -.02em;
+}
+.home-page .home-pending-heading p:last-child {
+    margin: 0; color: #705526; font-size: .88rem; line-height: 1.55;
+}
+.home-page .home-pending-list {
+    margin: 1.1rem 0 0; padding: 0; list-style: none;
+    display: grid; gap: .65rem;
+}
+.home-page .home-pending-item {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: .9rem; min-width: 0;
+    padding: .9rem 1rem; background: #fff;
+    border: 1px solid #f1dcad; border-radius: .75rem;
+}
+.home-page .home-pending-item-info { min-width: 0; flex: 1 1 180px; }
+.home-page .home-pending-item h3 {
+    margin: .2rem 0 0; color: #1e293b; font-size: .93rem;
+    font-weight: 700; overflow-wrap: anywhere;
+}
+.home-page .home-pending-reply {
+    min-height: 40px; padding: .55rem .9rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: .45rem; border-radius: .6rem;
+    color: #fff; background: #925c10; text-decoration: none;
+    font-size: .84rem; font-weight: 750;
+}
+.home-page .home-pending-reply:hover { color: #fff; background: #754509; }
+.home-page .home-pending-reply:focus-visible,
+.home-page .home-pending-more a:focus-visible {
+    outline: 3px solid #2b9df4; outline-offset: 3px;
+}
+.home-page .home-pending-more {
+    margin: .9rem 0 0; color: #705526; font-size: .82rem;
+    line-height: 1.55;
+}
+.home-page .home-pending-more a { color: #76500b; font-weight: 750; }
+@media (max-width: 520px) {
+    .home-page .home-pending { padding: 1.1rem; }
+    .home-page .home-pending-heading { gap: .75rem; }
+    .home-page .home-pending-icon { width: 38px; height: 38px; }
+    .home-page .home-pending-item { align-items: stretch; }
+    .home-page .home-pending-reply { width: 100%; }
+}
+
 .home-page .home-citizen-grid {
     display: grid;
     grid-template-columns: minmax(300px, .92fr) minmax(0, 1.7fr);

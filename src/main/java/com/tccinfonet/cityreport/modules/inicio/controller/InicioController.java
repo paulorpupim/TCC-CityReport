@@ -43,6 +43,9 @@ public class InicioController {
         var meusChamados = chamadoService.listarDoCidadao(autenticacao.getName());
         model.addAttribute("totalMeusChamados", meusChamados.size());
         model.addAttribute("chamadosRecentes", meusChamados.stream().limit(3).toList());
+        var pendencias = chamadoService.consultarPendenciasInformacoes(usuario.getId());
+        model.addAttribute("quantidadePendencias", pendencias.total());
+        model.addAttribute("pendenciasChamados", pendencias.chamados());
         return "inicio/cidadao";
     }
 }

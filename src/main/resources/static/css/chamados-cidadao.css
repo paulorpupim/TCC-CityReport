@@ -56,6 +56,82 @@
     font-size: .77rem;
 }
 
+/* Pesquisa instantânea da listagem do cidadão (sem alterar os filtros ou a ordem). */
+.citizen-list-page .citizen-list-search { margin: -.3rem 0 1.35rem; }
+.citizen-list-page .citizen-list-search-field {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-height: 48px;
+    padding: .35rem .7rem;
+    border: 1px solid #cbd8e7;
+    border-radius: .75rem;
+    background: #fff;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+.citizen-list-page .citizen-list-search-field:focus-within {
+    border-color: #2B9DF4;
+    box-shadow: 0 0 0 3px rgba(43, 157, 244, .14);
+}
+.citizen-list-page .citizen-list-search-field svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: #64748b;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+.citizen-list-page .citizen-list-search-field input {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    padding: .48rem 0;
+    color: #0f172a;
+    background: transparent;
+    font: inherit;
+    font-size: .91rem;
+}
+.citizen-list-page .citizen-list-search-field input::placeholder { color: #718198; }
+.citizen-list-page .citizen-list-search-clear {
+    padding: .4rem .55rem;
+    border: 0;
+    border-radius: .45rem;
+    background: #eef6fe;
+    color: #146daa;
+    font: inherit;
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.citizen-list-page .citizen-list-search-clear:hover { background: #deeffe; }
+.citizen-list-page .citizen-list-search-clear:focus-visible {
+    outline: 2px solid #2B9DF4;
+    outline-offset: 2px;
+}
+.citizen-list-page .citizen-list-search-count {
+    margin: .45rem 0 0;
+    color: #64748b;
+    font-size: .79rem;
+}
+.citizen-list-page .citizen-list-no-results {
+    padding: 2rem 1rem;
+    margin-bottom: .5rem;
+    border: 1px dashed #b8cee4;
+    border-radius: .8rem;
+    background: #f8fbff;
+    text-align: center;
+}
+.citizen-list-page .citizen-list-no-results h3 { margin: 0 0 .4rem; color: #24344e; }
+.citizen-list-page .citizen-list-no-results p { margin: 0; color: #526178; font-size: .9rem; }
+/* A regra explícita evita que display:flex/grid se sobreponha a [hidden]. */
+.citizen-list-page .citizen-list-search[hidden],
+.citizen-list-page .citizen-list-no-results[hidden],
+.citizen-list-page .citizen-list-search-clear[hidden],
+.citizen-list-page .citizen-request-card[hidden] { display: none !important; }
+
 .citizen-list-page .citizen-request-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

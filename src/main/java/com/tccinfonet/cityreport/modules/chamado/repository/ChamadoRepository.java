@@ -33,6 +33,13 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long>, JpaSpec
 
         List<Chamado> findByCidadaoIdOrderByDataCriacaoDesc(Long cidadaoId);
 
+        // Aviso da pagina inicial: conta os chamados que aguardam resposta do cidadao.
+        long countByCidadaoIdAndStatus(Long cidadaoId, StatusChamado status);
+
+        // Busca apenas os tres chamados que serao exibidos, sem carregar todos os registros.
+        List<Chamado> findByCidadaoIdAndStatusOrderByDataCriacaoDesc(
+                        Long cidadaoId, StatusChamado status, Pageable pagina);
+
         List<Chamado> findByFuncionarioResponsavelIdOrderByDataCriacaoDesc(Long funcionarioId);
 
         List<Chamado> findByStatusOrderByDataCriacaoDesc(StatusChamado status);

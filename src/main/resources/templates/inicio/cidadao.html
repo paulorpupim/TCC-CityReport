@@ -36,6 +36,44 @@
             Você está usando a área pessoal. As atividades de campo são realizadas pelo aplicativo CityReport Mobile.
         </p>
 
+        <!-- Aviso persistente: somente quando a prefeitura aguarda uma resposta deste cidadao. -->
+        <section class="home-pending" th:if="${quantidadePendencias > 0}"
+                 aria-labelledby="titulo-pendencias">
+            <div class="home-pending-heading">
+                <span class="home-pending-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-8.5A8.5 8.5 0 0 1 10.5 5H12"/><path d="M17 3v7M17 13h.01"/></svg>
+                </span>
+                <div>
+                    <p class="home-pending-eyebrow">AÇÃO NECESSÁRIA</p>
+                    <h2 id="titulo-pendencias">A prefeitura está aguardando suas informações</h2>
+                    <p th:text="${quantidadePendencias == 1
+                            ? 'Você possui 1 chamado que precisa da sua resposta para continuar o atendimento.'
+                            : 'Você possui ' + quantidadePendencias + ' chamados que precisam da sua resposta para continuar o atendimento.'}">
+                        Há chamados aguardando a sua resposta.
+                    </p>
+                </div>
+            </div>
+
+            <ul class="home-pending-list">
+                <li class="home-pending-item" th:each="pendencia : ${pendenciasChamados}">
+                    <div class="home-pending-item-info">
+                        <span class="home-protocol" th:text="${pendencia.protocolo}">2026-000001</span>
+                        <h3 th:text="${pendencia.titulo}">Título do chamado</h3>
+                    </div>
+                    <a class="home-pending-reply"
+                       th:href="@{/chamados/{id}(id=${pendencia.id},secao='comunicacao')}"
+                       href="/chamados/1?secao=comunicacao"
+                       th:aria-label="|Responder à solicitação do chamado ${pendencia.protocolo}|">
+                        Responder <span aria-hidden="true">→</span>
+                    </a>
+                </li>
+            </ul>
+            <p class="home-pending-more" th:if="${quantidadePendencias > 3}">
+                <span th:text="|E mais ${quantidadePendencias - 3} chamado(s) aguardando resposta.|">Outros chamados aguardam resposta.</span>
+                <a th:href="@{/chamados}" href="/chamados">Ver todos os meus chamados</a>
+            </p>
+        </section>
+
         <div class="home-citizen-grid">
             <section class="home-panel home-how" aria-labelledby="titulo-como-funciona">
                 <div class="home-panel-heading">

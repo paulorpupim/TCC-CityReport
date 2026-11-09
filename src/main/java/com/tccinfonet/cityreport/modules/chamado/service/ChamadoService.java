@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -96,6 +97,21 @@ public class ChamadoService {
         Usuario usuario = usuarioService.buscarPorEmail(emailAutenticado);
         return chamadoRepository.findByCidadaoIdOrderByDataCriacaoDesc(usuario.getId());
     }
+
+    // Consulta exclusivamente os chamados deste cidadao que exigem resposta.
+    // A pagina inicial exibe no maximo tres, mas informa a quantidade total.
+    public PendenciasInformacoes consultarPendenciasInformacoes(Long cidadaoId) {
+        long total = chamadoRepository.countByCidadaoIdAndStatus(
+                cidadaoId, StatusChamado.AGUARDANDO_INFORMACOES);
+        if (total == 0) {
+            return new PendenciasInformacoes(0, List.of());
+        }
+        List<Chamado> recentes = chamadoRepository.findByCidadaoIdAndStatusOrderByDataCriacaoDesc(
+                cidadaoId, StatusChamado.AGUARDANDO_INFORMACOES, PageRequest.of(0, 3));
+        return new PendenciasInformacoes(total, List.copyOf(recentes));
+    }
+
+    public record PendenciasInformacoes(long total, List<Chamado> chamados) { }
 
     public Chamado buscarDoCidadao(Long chamadoId, String emailAutenticado) {
         Usuario usuario = usuarioService.buscarPorEmail(emailAutenticado);
