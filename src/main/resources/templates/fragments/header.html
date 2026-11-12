@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <body>
-    <header class="home-header" th:fragment="cidadao(abaAtiva)">
+    <header class="home-header" th:fragment="cidadao(abaAtiva)"
+            th:with="nomeConta=${@usuarioService.buscarPorEmail(#authentication.name).nome}">
         <div class="home-header-inner">
             <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
                 <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt="" class="home-brand-icon" width="48" height="48">
@@ -21,10 +22,12 @@
                    th:classappend="${abaAtiva == 'chamados'} ? 'is-current' : ''"
                    th:attr="aria-current=${abaAtiva == 'chamados' ? 'page' : null}">Meus chamados</a>
             </nav>
-            <!-- Menu de perfil do cidadão: reaproveita os estilos do menu do atendente. -->
+            <!-- O nome vem da conta autenticada e é consultado no fragmento compartilhado. -->
             <details class="home-account-menu">
-                <summary class="home-account-toggle" aria-label="Abrir opções da conta do cliente">
-                    <span class="home-account-role">Cliente</span>
+                <summary class="home-account-toggle"
+                         th:attr="aria-label=|Abrir opções da conta de ${nomeConta}|">
+                    <span class="home-account-role" th:text="${nomeConta}"
+                          th:title="${nomeConta}">Cliente</span>
                     <span class="home-account-avatar" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
                              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
@@ -39,6 +42,7 @@
                     </svg>
                 </summary>
                 <div class="home-account-dropdown">
+                    <div class="home-account-identity" th:text="${nomeConta}">Nome do usuário</div>
                     <a class="home-account-action"
                        th:href="@{/cidadaos/perfil}" href="/cidadaos/perfil"
                        th:classappend="${abaAtiva == 'perfil'} ? 'is-current' : ''"
@@ -52,7 +56,8 @@
         </div>
     </header>
 
-    <header class="home-header" th:fragment="atendente(abaAtiva)">
+    <header class="home-header" th:fragment="atendente(abaAtiva)"
+            th:with="nomeConta=${@usuarioService.buscarPorEmail(#authentication.name).nome}">
         <div class="home-header-inner">
             <a class="home-brand" th:href="@{/}" href="/" aria-label="CityReport — início">
                 <img th:src="@{/img/logo/logo.svg}" src="/img/logo/logo.svg" alt="" class="home-brand-icon" width="48" height="48">
@@ -97,10 +102,12 @@
                    th:classappend="${abaAtiva == 'setores'} ? 'is-current' : ''"
                    th:attr="aria-current=${abaAtiva == 'setores' ? 'page' : null}">Setores</a>
             </nav>
-            <!-- Menu de conta: apenas para o atendente. Sem JavaScript ou bibliotecas. -->
+            <!-- Menu de conta do atendente: sem JavaScript ou bibliotecas. -->
             <details class="home-account-menu">
-                <summary class="home-account-toggle" aria-label="Abrir opções da conta do atendente">
-                    <span class="home-account-role">Atendente</span>
+                <summary class="home-account-toggle"
+                         th:attr="aria-label=|Abrir opções da conta de ${nomeConta}|">
+                    <span class="home-account-role" th:text="${nomeConta}"
+                          th:title="${nomeConta}">Atendente</span>
                     <span class="home-account-avatar" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
                              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
@@ -115,6 +122,7 @@
                     </svg>
                 </summary>
                 <div class="home-account-dropdown">
+                    <div class="home-account-identity" th:text="${nomeConta}">Nome do usuário</div>
                     <a class="home-account-action"
                        th:href="@{/atendente/minha-senha}" href="/atendente/minha-senha"
                        th:classappend="${abaAtiva == 'minha-senha'} ? 'is-current' : ''"

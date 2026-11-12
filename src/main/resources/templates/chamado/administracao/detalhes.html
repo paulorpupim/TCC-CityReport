@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#192231">
     <title th:text="'Chamado ' + ${chamado.protocolo} + ' | CityReport'">Detalhes do chamado | CityReport</title>
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/lightbox-fotos.css}" href="/css/lightbox-fotos.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamado-detalhes-administracao.css}" href="/css/chamado-detalhes-administracao.css">
     <link th:if="${secao == 'informacoes'}" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -120,7 +121,7 @@
                 <p class="admin-detail-empty" th:if="${#lists.isEmpty(fotos)}">Nenhuma fotografia do problema foi enviada.</p>
                 <div class="admin-detail-photos" th:unless="${#lists.isEmpty(fotos)}">
                     <article class="admin-detail-photo" th:each="foto : ${fotos}">
-                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia do problema">
+                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" data-cr-photo-lightbox aria-label="Ampliar fotografia do problema">
                             <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" alt="Fotografia do problema" loading="lazy">
                         </a>
                         <div class="admin-detail-photo-info">
@@ -306,7 +307,7 @@
                 <p class="admin-detail-empty" th:if="${#lists.isEmpty(fotos)}">Ainda não há fotografias de conclusão.</p>
                 <div class="admin-detail-photos" th:unless="${#lists.isEmpty(fotos)}">
                     <article class="admin-detail-photo" th:each="foto : ${fotos}">
-                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia da solução">
+                        <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" data-cr-photo-lightbox aria-label="Ampliar fotografia da solução">
                             <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}" alt="Fotografia da solução enviada pelo funcionário" loading="lazy">
                         </a>
                         <div class="admin-detail-photo-info"><time th:text="${#temporals.format(foto.dataEnvio, 'dd/MM/yyyy HH:mm')}">01/11/2026</time><span th:text="${foto.enviadaPor.nome}">Funcionário</span></div>
@@ -414,5 +415,7 @@
     </script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/4.6.1/slimselect.min.js"></script>
     <script defer th:src="@{/js/slim-select-cityreport.js}" src="/js/slim-select-cityreport.js"></script>
+    <script th:if="${secao == 'informacoes' or secao == 'conclusao'}" defer
+            th:src="@{/js/lightbox-fotos.js}" src="/js/lightbox-fotos.js"></script>
 </body>
 </html>

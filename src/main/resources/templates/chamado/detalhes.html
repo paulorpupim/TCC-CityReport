@@ -7,6 +7,7 @@
     <title th:text="'Chamado ' + ${chamado.protocolo} + ' | CityReport'">Detalhes do chamado | CityReport</title>
 
     <link rel="stylesheet" th:href="@{/css/global.css}" href="/css/global.css">
+    <link rel="stylesheet" th:href="@{/css/lightbox-fotos.css}" href="/css/lightbox-fotos.css">
     <link rel="stylesheet" th:href="@{/css/inicio.css}" href="/css/inicio.css">
     <link rel="stylesheet" th:href="@{/css/chamado-detalhes.css}" href="/css/chamado-detalhes.css">
     <link th:if="${secao == 'informacoes'}" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -149,7 +150,7 @@
                 <ul class="citizen-detail-photo-grid" th:unless="${#lists.isEmpty(fotos)}">
                     <li class="citizen-detail-photo" th:each="foto : ${fotos}">
                         <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                           target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia do problema">
+                           data-cr-photo-lightbox aria-label="Ampliar fotografia do problema">
                             <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
                                  alt="Fotografia do problema" loading="lazy" width="480" height="290">
                         </a>
@@ -305,7 +306,7 @@
                 <ul class="citizen-detail-photo-grid" th:if="${chamado.status.name() == 'RESOLVIDO' and !#lists.isEmpty(fotos)}">
                     <li class="citizen-detail-photo" th:each="foto : ${fotos}">
                         <a th:href="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
-                           target="_blank" rel="noopener noreferrer" aria-label="Abrir fotografia da solução aprovada">
+                           data-cr-photo-lightbox aria-label="Ampliar fotografia da solução aprovada">
                             <img th:src="@{/chamados/{id}/fotos/{fotoId}/imagem(id=${chamado.id},fotoId=${foto.id})}"
                                  alt="Fotografia final aprovada" loading="lazy" width="480" height="290">
                         </a>
@@ -372,5 +373,7 @@
             L.marker([latitude, longitude]).addTo(mapa).bindPopup('Local informado no chamado.');
         })();
     </script>
+    <script th:if="${secao == 'informacoes' or secao == 'conclusao'}" defer
+            th:src="@{/js/lightbox-fotos.js}" src="/js/lightbox-fotos.js"></script>
 </body>
 </html>

@@ -1,0 +1,80 @@
+/* CityReport — fotos ampliadas, compartilhado pelas telas do cidadao e atendente. */
+.cr-photo-lightbox {
+    width: min(1100px, calc(100vw - 2rem));
+    max-width: none;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 1.25rem;
+    border: 1px solid #435977;
+    border-radius: 1rem;
+    background: #101b2e;
+    color: #fff;
+    box-shadow: 0 28px 80px rgb(0 0 0 / 40%);
+}
+
+.cr-photo-lightbox::backdrop {
+    background: rgb(2 8 23 / 85%);
+    backdrop-filter: blur(3px);
+}
+
+.cr-photo-lightbox__conteudo { position: relative; display: grid; gap: .7rem; }
+.cr-photo-lightbox__fechar {
+    position: absolute;
+    z-index: 1;
+    right: -.45rem;
+    top: -.5rem;
+    display: grid;
+    place-items: center;
+    width: 2.65rem;
+    height: 2.65rem;
+    border: 1px solid #7b90ae;
+    border-radius: 50%;
+    background: #23364e;
+    color: #fff;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.cr-photo-lightbox__fechar:hover { background: #355577; }
+.cr-photo-lightbox__fechar:focus-visible { outline: 3px solid #60bdff; outline-offset: 3px; }
+
+.cr-photo-lightbox__visualizacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 7rem;
+    padding-top: 2rem;
+}
+.cr-photo-lightbox__imagem {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100vh - 10rem);
+    max-height: calc(100dvh - 10rem);
+    object-fit: contain;
+    border-radius: .45rem;
+}
+.cr-photo-lightbox__imagem[hidden],
+.cr-photo-lightbox__estado[hidden] { display: none; }
+.cr-photo-lightbox__estado { margin: 0; color: #dce8f7; text-align: center; }
+.cr-photo-lightbox__legenda {
+    margin: 0;
+    color: #dce8f7;
+    font-size: .85rem;
+    text-align: center;
+}
+
+/* Mantem as miniaturas com a indicacao de que podem ser ampliadas. */
+a[data-cr-photo-lightbox] { cursor: zoom-in; }
+
+@media (max-width: 600px) {
+    .cr-photo-lightbox { width: calc(100vw - 1rem); padding: .75rem; }
+    .cr-photo-lightbox__visualizacao { padding-top: 2.4rem; }
+    .cr-photo-lightbox__imagem {
+        max-height: calc(100vh - 8rem);
+        max-height: calc(100dvh - 8rem);
+    }
+    .cr-photo-lightbox__fechar { top: -.1rem; right: -.1rem; }
+}
